@@ -2,7 +2,6 @@ using Assets.Scripts;
 using Assets.Scripts.ChatScreen;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -89,13 +88,6 @@ public class ChatAreaManager : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-
-        VirtualScrollRect.OnReachedEnd -= VirtualScrollRect_OnReachedEnd;
-    }
-
-    private void OnDestroy()
-    {
-        //VirtualScrollRect.OnReachedEnd -= VirtualScrollRect_OnReachedEnd;
     }
 
     public void Initialise()
@@ -108,38 +100,7 @@ public class ChatAreaManager : MonoBehaviour
         allMessages = CurrentChat.ToChatMessages().Messages;
         TotalMessages = allMessages.Count;
 
-        //StartCoroutine(InstantiatePagedMessages());
-
-        //VirtualScrollRect.OnReachedEnd += VirtualScrollRect_OnReachedEnd;
-    }
-
-    public bool isLoadingPage = false;
-    private void VirtualScrollRect_OnReachedEnd()
-    {
-        if (isLastPage)
-        {
-            Destroy(loaderObject);
-        }
-
-        if (isLoadingPage || isLastPage)
-        {
-            return;
-        }
-
-        StartCoroutine(LoadNextPage());
-    }
-
-    public bool isLastPage = false;
-    GameObject loaderObject;
-    private IEnumerator LoadNextPage()
-    {
-        isLoadingPage = true;
-
-        yield return new WaitForSeconds(UnityEngine.Random.Range(0.5f, 1.1f));
-        Destroy(loaderObject);
-        yield return StartCoroutine(InstantiatePagedMessages());
-        CurrentPage++;
-        isLoadingPage = false;
+        InitialiseChatObjectsTemplates();
     }
 
     private string GetMessageTimestamp(ChatMessage chatMessage)
@@ -152,45 +113,20 @@ public class ChatAreaManager : MonoBehaviour
         return (today ? "Today " : yesterday ? "Yesterday " : "") + chatMessage.Message.DeliveredAt.dateTime.ToString((today || yesterday) ? "h:mm tt" : sameWeek ? "ddd, h:mm tt" : !sameYear ? "d MMM yyyy, h:mm tt" : "d MMM, h:mm tt");
     }
 
-    List<ChatMessage> pagedMessages;
-    public IEnumerator InstantiatePagedMessages()
+    public List<ChatObjectTemplate> ChatObjectTemplates;
+    public void InitialiseChatObjectsTemplates()
     {
-        pagedMessages = allMessages
-            .Skip(TotalMessages - (CurrentPage * PageSize))
-            .Take(PageSize)
-            .ToList();
+        ChatObjectTemplates = new List<ChatObjectTemplate>();
 
-        isLastPage = pagedMessages.Contains(allMessages.First());
-
-        pagedMessages.Reverse();
-
-        foreach (var chatMessage in pagedMessages)
+        foreach (var chatMessage in allMessages)
         {
-            InstantiateMessage(chatMessage);
+            InitialiseChatObjectTemplates(chatMessage);
         }
-
-        yield return new WaitForSeconds(0);
-        loaderObject = Instantiate(MessageLoaderPrefab, MessagesHolder);
-
-        loaderObject.GetComponent<MessagesLoader>().Initialise(GetMessageTimestamp(pagedMessages.Last()));
     }
-
-    public void InstantiateMessage(int index)
+    public void InitialiseChatObjectTemplates(ChatMessage chatMessage)
     {
-        var chatMessage = allMessages[index];
-        InstantiateMessage(chatMessage);
-    }
-
-    public void InstantiateMessage(ChatMessage currentMessage, int indexOffset)
-    {
-        var chatMessage = allMessages[allMessages.IndexOf(currentMessage) + indexOffset];
-        InstantiateMessage(chatMessage);
-    }
-
-    public void InstantiateMessage(ChatMessage chatMessage)
-    {
-        ChatMessage previousMessage = null;
-        ChatMessage nextMessage = null;
+        ChatMessage previousMessage;
+        ChatMessage nextMessage;
 
         var prevMessageIndex = allMessages.IndexOf(chatMessage) - 1;
         if (prevMessageIndex < allMessages.Count && prevMessageIndex > 0)
@@ -212,10 +148,11 @@ public class ChatAreaManager : MonoBehaviour
             nextMessage = null;
         }
 
-        var messageObject = Instantiate(MessagePrefab, MessagesHolder);
-
-        var messageUI = messageObject.GetComponent<MessageUI>();
-        messageUI.Initialise(chatMessage);
+        var messageObjectTemplate = new ChatMessageObjectTemplate
+        {
+            ChatMessage = chatMessage
+        };
+        ChatObjectTemplates.Add(messageObjectTemplate);
 
         var IsOurs = chatMessage.From == ProfileManager.Instance.LoggedInProfile;
 
@@ -230,18 +167,17 @@ public class ChatAreaManager : MonoBehaviour
 
             if (delaySpan.TotalMinutes >= 10)
             {
-                var sameWeek = DateTime.Today.Subtract(chatMessage.Message.DeliveredAt.dateTime).Days <= 7;
-                var sameYear = DateTime.Today.Year == chatMessage.Message.DeliveredAt.dateTime.Year;
-                var today = sameWeek && chatMessage.Message.DeliveredAt.dateTime.DayOfWeek == DateTime.Today.DayOfWeek;
-                var yesterday = sameWeek && chatMessage.Message.DeliveredAt.dateTime.DayOfWeek == DateTime.Today.DayOfWeek - 1;
+                var timeBreakTemplate = new ChatTimeBreakObjectTemplate
+                {
+                    TimestampText = GetMessageTimestamp(chatMessage)
+                };
 
-                var timeBreakUIText = Instantiate(TimeBreakPrefab, MessagesHolder).GetComponent<TextMeshProUGUI>();
-
-                timeBreakUIText.text = GetMessageTimestamp(chatMessage);
+                ChatObjectTemplates.Add(timeBreakTemplate);
             }
             else if (delaySpan.TotalMinutes >= 1 || previousMessage.From != chatMessage.From)
             {
-                var delayObj = Instantiate(DelayFillerPrefab, MessagesHolder);
+                var delayObj = new ChatDelayObjectTemplate();
+                ChatObjectTemplates.Add(delayObj);
             }
         }
 
@@ -250,46 +186,91 @@ public class ChatAreaManager : MonoBehaviour
         var isContinuation = !addsBreak && previousMessage != null && previousMessage.From == chatMessage.From && !isLocalLast;
         var isAlone = (addsBreak || previousMessage == null || previousMessage.From != chatMessage.From) && (isLast || nextMessageAddsBreak || nextMessage.From != chatMessage.From);
 
-        messageUI.ProfileAreaObject.GetComponentsInChildren<Image>().ToList().ForEach(x => x.enabled = isLocalLast || isAlone);
+        messageObjectTemplate.IsContinuation = isContinuation;
+        messageObjectTemplate.IsLocalLast = isLocalLast;
+        messageObjectTemplate.IsLast = isLast;
+        messageObjectTemplate.IsAlone = isAlone;
 
-        var height = messageUI.MessageBackground.GetComponent<LayoutElement>().minHeight;
-
-        if (isAlone)
-        {
-            messageUI.IndependentRoundnessComponent.enabled = false;
-            messageUI.RoundnessComponent.enabled = true;
-
-            messageUI.RoundnessComponent.radius = height;
-        }
-        else
-        {
-            messageUI.RoundnessComponent.enabled = false;
-            messageUI.IndependentRoundnessComponent.enabled = true;
-
-            float topLeft = 0;
-            float topRight = 0;
-            float bottomLeft = 0;
-            float bottomRight = 0;
-
-            if (IsOurs)
-            {
-                topLeft = bottomLeft = height / 2;
-                topRight = isContinuation ? 4 : isLocalLast ? 4 : height / 2;
-                bottomRight = isContinuation ? 4 : !isLocalLast ? 4 : height / 2;
-            }
-            else
-            {
-                topRight = bottomRight = height / 2;
-                topLeft = isContinuation ? 4 : isLocalLast ? 4 : height / 2;
-                bottomLeft = isContinuation ? 4 : !isLocalLast ? 4 : height / 2;
-            }
-
-            messageUI.IndependentRoundnessComponent.r.Set(topLeft, topRight, bottomRight, bottomLeft);
-        }
+        messageObjectTemplate.EnableProfileImage = isLocalLast || isAlone;
 
         if (isLast && IsOurs)
         {
-            var messageStatusObj = Instantiate(MessageStatusPrefab, MessagesHolder);
+            var messageStatusObj = new ChatStatusObjectTemplate();
+            ChatObjectTemplates.Add(messageStatusObj);
+        }
+    }
+
+    public void InstantiateMessage(int objectTemplateIndex)
+    {
+        var chatObjectTemplate = ChatObjectTemplates[objectTemplateIndex];
+        InstantiateMessage(chatObjectTemplate);
+    }
+
+    public void InstantiateMessage(ChatObjectTemplate chatObjectTemplate)
+    {
+        var objectTemplateIndex = ChatObjectTemplates.IndexOf(chatObjectTemplate);
+        switch (chatObjectTemplate.Type)
+        {
+            case ChatObjectType.Message:
+                var chatMessageObjectTemplate = chatObjectTemplate as ChatMessageObjectTemplate;
+                var messageObject = Instantiate(MessagePrefab, MessagesHolder);
+                messageObject.name = objectTemplateIndex.ToString();
+                var messageUI = messageObject.GetComponent<MessageUI>();
+                messageUI.Initialise(chatMessageObjectTemplate.ChatMessage);
+
+                messageUI.ProfileAreaObject.GetComponentsInChildren<Image>().ToList().ForEach(x => x.enabled = chatMessageObjectTemplate.EnableProfileImage);
+
+                var height = messageUI.MessageBackground.GetComponent<LayoutElement>().minHeight;
+
+                var IsOurs = chatMessageObjectTemplate.ChatMessage.From == ProfileManager.Instance.LoggedInProfile;
+
+                if (chatMessageObjectTemplate.IsAlone)
+                {
+                    messageUI.IndependentRoundnessComponent.enabled = false;
+                    messageUI.RoundnessComponent.enabled = true;
+
+                    messageUI.RoundnessComponent.radius = height;
+                }
+                else
+                {
+                    messageUI.RoundnessComponent.enabled = false;
+                    messageUI.IndependentRoundnessComponent.enabled = true;
+
+                    float topLeft = 0;
+                    float topRight = 0;
+                    float bottomLeft = 0;
+                    float bottomRight = 0;
+
+                    if (IsOurs)
+                    {
+                        topLeft = bottomLeft = height / 2;
+                        topRight = chatMessageObjectTemplate.IsContinuation ? 4 : chatMessageObjectTemplate.IsLocalLast ? 4 : height / 2;
+                        bottomRight = chatMessageObjectTemplate.IsContinuation ? 4 : !chatMessageObjectTemplate.IsLocalLast ? 4 : height / 2;
+                    }
+                    else
+                    {
+                        topRight = bottomRight = height / 2;
+                        topLeft = chatMessageObjectTemplate.IsContinuation ? 4 : chatMessageObjectTemplate.IsLocalLast ? 4 : height / 2;
+                        bottomLeft = chatMessageObjectTemplate.IsContinuation ? 4 : !chatMessageObjectTemplate.IsLocalLast ? 4 : height / 2;
+                    }
+
+                    messageUI.IndependentRoundnessComponent.r.Set(topLeft, topRight, bottomRight, bottomLeft);
+                }
+                break;
+            case ChatObjectType.Delay:
+                var delayObj = Instantiate(DelayFillerPrefab, MessagesHolder);
+                delayObj.name = objectTemplateIndex.ToString();
+                break;
+            case ChatObjectType.TimeBreak:
+                var chatTimebreakObjectTemplate = chatObjectTemplate as ChatTimeBreakObjectTemplate;
+                var timeBreakUIText = Instantiate(TimeBreakPrefab).GetComponent<TextMeshProUGUI>();
+                timeBreakUIText.gameObject.name = objectTemplateIndex.ToString();
+                timeBreakUIText.text = chatTimebreakObjectTemplate.TimestampText;
+                break;
+            case ChatObjectType.Status:
+                var statusObj = Instantiate(MessageStatusPrefab, MessagesHolder);
+                statusObj.name = objectTemplateIndex.ToString();
+                break;
         }
     }
 

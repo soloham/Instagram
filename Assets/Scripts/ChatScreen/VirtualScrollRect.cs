@@ -16,8 +16,6 @@ using UnityEngine.UI;
 [System.Serializable]
 public class VirtualScrollRect : ScrollRectFaster
 {
-    private int totalElements;
-    private int visibleMessages = 16;
     private int firstVisibleElementIndex;
     private int lastVisibleElementIndex;
 
@@ -73,6 +71,11 @@ public class VirtualScrollRect : ScrollRectFaster
 
     public void UpdateVisibleMessages()
     {
+        if (Inspector.ChatAreaManager.ChatObjectTemplates == null)
+        {
+            return;
+        }
+
         if (content.childCount == 0)
         {
             for (int i = 0; i < 16; i++)
@@ -84,18 +87,6 @@ public class VirtualScrollRect : ScrollRectFaster
         var firstVisibleIndex = GetFirstVisibleElementIndex();
         var lastVisibleIndex = GetLastVisibleElementIndex();
 
-        var isLastMessage = firstVisibleIndex == content.childCount - 1;
-        if (isLastMessage)
-        {
-            if (OnReachedEnd != null)
-                OnReachedEnd();
-        }
-
-        if (Inspector.ChatAreaManager.isLoadingPage)
-        {
-            return;
-        }
-
         // + 1 to include the new one to be added
         var beforeFirstVisibleIndex = firstVisibleIndex + Inspector.elementsBeforeVisible + 1;
 
@@ -104,35 +95,21 @@ public class VirtualScrollRect : ScrollRectFaster
 
         if (beforeFirstVisibleIndex > content.childCount - 1)
         {
-            ChatMessage lastChatMessage = null;
-            for (int i = content.childCount - 1; i >= 0; i--)
-            {
-                var child = content.GetChild(i);
-                var childMessageUI = child.GetComponent<MessageUI>();
-                if (childMessageUI != null)
-                {
-                    lastChatMessage = childMessageUI.ChatMessage;
-                    break;
-                }
-            }
-
-            Inspector.ChatAreaManager.InstantiateMessage(lastChatMessage, 1);
+            var lastChatObjectTemplateIndex = int.Parse(content.GetChild(content.childCount - 1).name);
+            Inspector.ChatAreaManager.InstantiateMessage(lastChatObjectTemplateIndex + 1);
         }
         else if (beforeFirstVisibleIndex == content.childCount - 1)
         {
             var obj = content.GetChild(beforeFirstVisibleIndex);
-            if (!Inspector.ChatAreaManager.isLoadingPage)
-            {
-                content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y + (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
-            }
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y + (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
 
             Destroy(obj);
         }
 
         if (afterLastVisibleIndex < 0)
         {
-            var firstChatMessage = content.GetChild(0).GetComponent<MessageUI>().ChatMessage;
-            Inspector.ChatAreaManager.InstantiateMessage(firstChatMessage, 1);
+            var firstChatObjectIndex = int.Parse(content.GetChild(0).name);
+            Inspector.ChatAreaManager.InstantiateMessage(firstChatObjectIndex - 1);
         }
         else if (afterLastVisibleIndex == 0)
         {
@@ -141,49 +118,8 @@ public class VirtualScrollRect : ScrollRectFaster
 
             Destroy(obj);
 
-            if (!Inspector.ChatAreaManager.isLoadingPage)
-            {
-                content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y - (Inspector.ScrollIncrementDivisor == 0 ? 0 : objHeight / Inspector.ScrollIncrementDivisor));
-            }
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y - (Inspector.ScrollIncrementDivisor == 0 ? 0 : objHeight / Inspector.ScrollIncrementDivisor));
         }
-
-        //for (var i = ; i >= lastVisibleIndex - Inspector.elementsAfterVisible - 1; i--)
-        //{
-        //    if (i >= Inspector.ChatAreaManager.TotalMessages || i < 0)
-        //    {
-        //        continue;
-        //    }
-
-        //    var isBeforeAllowed = i > firstVisibleIndex + Inspector.elementsBeforeVisible;
-        //    var isAfterAllowed = i < lastVisibleIndex - Inspector.elementsAfterVisible;
-
-        //    var isActive = !isBeforeAllowed && !isAfterAllowed;// i <= firstVisibleIndex + Inspector.elementsBeforeVisible && i >= lastVisibleIndex - Inspector.elementsAfterVisible;
-
-        //    if (i < content.childCount)
-        //    {
-        //        var obj = content.GetChild(i).gameObject;
-
-        //    }
-
-
-
-        //    if (!isActive)
-        //    {
-        //        Destroy(obj);
-        //    }
-        //    else
-        //    {
-        //        var chatMessage = obj.GetComponent<MessageUI>().ChatMessage;
-
-        //        // Workout Chat Message Index To Instantiate
-        //    }
-        //    obj.SetActive(isActive);
-
-        //    if ((i >= lastVisibleIndex - Inspector.elementsAfterVisible && i < lastVisibleIndex) && isActive && !Inspector.ChatAreaManager.isLoadingPage)
-        //    {
-        //        content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y - (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
-        //    }
-        //}
     }
 
     public int GetFirstVisibleElementIndex()
