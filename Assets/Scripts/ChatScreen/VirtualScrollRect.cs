@@ -43,6 +43,7 @@ public class VirtualScrollRect : ScrollRectFaster
         {
             Inspector.FirstItemIndexTMP.text = $"Current Item: {GetLastVisibleElementIndex()}";
         }
+        //UpdateVisibleMessages();
     }
 
     protected override void Decelerating()
@@ -69,6 +70,8 @@ public class VirtualScrollRect : ScrollRectFaster
         }
     }
 
+    int oldFirstVisibleIndex = 0;
+    int oldLastVisibleIndex = 0;
     public void UpdateVisibleMessages()
     {
         if (Inspector.ChatAreaManager.ChatObjectTemplates == null)
@@ -78,48 +81,63 @@ public class VirtualScrollRect : ScrollRectFaster
 
         if (content.childCount == 0)
         {
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < 50; i++)
             {
-                Inspector.ChatAreaManager.InstantiateMessage(i);
+                Inspector.ChatAreaManager.InstantiateChatObject(i);
             }
+
+            return;
         }
 
         var firstVisibleIndex = GetFirstVisibleElementIndex();
         var lastVisibleIndex = GetLastVisibleElementIndex();
 
-        // + 1 to include the new one to be added
-        var beforeFirstVisibleIndex = firstVisibleIndex + Inspector.elementsBeforeVisible + 1;
+        if (oldFirstVisibleIndex == 0)
+        {
+            oldFirstVisibleIndex = firstVisibleIndex;
+        }
 
-        // - 1 to include the old one to be destroyed
-        var afterLastVisibleIndex = lastVisibleIndex - Inspector.elementsAfterVisible - 1;
+        if (oldLastVisibleIndex == 0)
+        {
+            oldLastVisibleIndex = lastVisibleIndex;
+        }
 
-        if (beforeFirstVisibleIndex > content.childCount - 1)
+        if (firstVisibleIndex > oldFirstVisibleIndex && velocity.y < 0)
         {
             var lastChatObjectTemplateIndex = int.Parse(content.GetChild(content.childCount - 1).name);
-            Inspector.ChatAreaManager.InstantiateMessage(lastChatObjectTemplateIndex + 1);
+            Inspector.ChatAreaManager.InstantiateChatObject(lastChatObjectTemplateIndex + 1);
         }
-        else if (beforeFirstVisibleIndex == content.childCount - 1)
+        else if (firstVisibleIndex < oldFirstVisibleIndex && velocity.y > 0)
         {
-            var obj = content.GetChild(beforeFirstVisibleIndex);
-            content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y + (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
+            var obj = content.GetChild(content.childCount - 1);
+            //content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y - (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
 
-            Destroy(obj);
+            Destroy(obj.gameObject);
         }
 
-        if (afterLastVisibleIndex < 0)
+        if (oldLastVisibleIndex > lastVisibleIndex && velocity.y > 0)
         {
             var firstChatObjectIndex = int.Parse(content.GetChild(0).name);
-            Inspector.ChatAreaManager.InstantiateMessage(firstChatObjectIndex - 1);
+            var obj = Inspector.ChatAreaManager.InstantiateChatObject(firstChatObjectIndex - 1);
+
+            if (obj != null)
+            {
+                obj.transform.SetAsFirstSibling();
+                content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y - (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
+            }
         }
-        else if (afterLastVisibleIndex == 0)
+        else if (oldLastVisibleIndex < lastVisibleIndex && velocity.y < 0)
         {
-            var obj = content.GetChild(afterLastVisibleIndex);
+            var obj = content.GetChild(0);
             var objHeight = obj.GetComponent<RectTransform>().sizeDelta.y;
 
-            Destroy(obj);
+            Destroy(obj.gameObject);
 
-            content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y - (Inspector.ScrollIncrementDivisor == 0 ? 0 : objHeight / Inspector.ScrollIncrementDivisor));
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y + (Inspector.ScrollIncrementDivisor == 0 ? 0 : objHeight / Inspector.ScrollIncrementDivisor));
         }
+
+        oldFirstVisibleIndex = firstVisibleIndex;
+        oldLastVisibleIndex = lastVisibleIndex;
     }
 
     public int GetFirstVisibleElementIndex()

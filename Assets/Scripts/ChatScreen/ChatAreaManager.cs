@@ -98,6 +98,7 @@ public class ChatAreaManager : MonoBehaviour
         }
 
         allMessages = CurrentChat.ToChatMessages().Messages;
+
         TotalMessages = allMessages.Count;
 
         InitialiseChatObjectsTemplates();
@@ -122,7 +123,10 @@ public class ChatAreaManager : MonoBehaviour
         {
             InitialiseChatObjectTemplates(chatMessage);
         }
+
+        ChatObjectTemplates.Reverse();
     }
+
     public void InitialiseChatObjectTemplates(ChatMessage chatMessage)
     {
         ChatMessage previousMessage;
@@ -200,22 +204,28 @@ public class ChatAreaManager : MonoBehaviour
         }
     }
 
-    public void InstantiateMessage(int objectTemplateIndex)
+    public GameObject InstantiateChatObject(int objectTemplateIndex)
     {
+        if (objectTemplateIndex < 0 || objectTemplateIndex >= ChatObjectTemplates.Count)
+        {
+            return null;
+        }
+
         var chatObjectTemplate = ChatObjectTemplates[objectTemplateIndex];
-        InstantiateMessage(chatObjectTemplate);
+        return InstantiateChatObject(chatObjectTemplate);
     }
 
-    public void InstantiateMessage(ChatObjectTemplate chatObjectTemplate)
+    public GameObject InstantiateChatObject(ChatObjectTemplate chatObjectTemplate)
     {
         var objectTemplateIndex = ChatObjectTemplates.IndexOf(chatObjectTemplate);
+        GameObject chatObject = null;
         switch (chatObjectTemplate.Type)
         {
             case ChatObjectType.Message:
                 var chatMessageObjectTemplate = chatObjectTemplate as ChatMessageObjectTemplate;
-                var messageObject = Instantiate(MessagePrefab, MessagesHolder);
-                messageObject.name = objectTemplateIndex.ToString();
-                var messageUI = messageObject.GetComponent<MessageUI>();
+                chatObject = Instantiate(MessagePrefab, MessagesHolder);
+                chatObject.name = objectTemplateIndex.ToString();
+                var messageUI = chatObject.GetComponent<MessageUI>();
                 messageUI.Initialise(chatMessageObjectTemplate.ChatMessage);
 
                 messageUI.ProfileAreaObject.GetComponentsInChildren<Image>().ToList().ForEach(x => x.enabled = chatMessageObjectTemplate.EnableProfileImage);
@@ -258,20 +268,24 @@ public class ChatAreaManager : MonoBehaviour
                 }
                 break;
             case ChatObjectType.Delay:
-                var delayObj = Instantiate(DelayFillerPrefab, MessagesHolder);
-                delayObj.name = objectTemplateIndex.ToString();
+                chatObject = Instantiate(DelayFillerPrefab, MessagesHolder);
+                chatObject.name = objectTemplateIndex.ToString();
                 break;
             case ChatObjectType.TimeBreak:
                 var chatTimebreakObjectTemplate = chatObjectTemplate as ChatTimeBreakObjectTemplate;
-                var timeBreakUIText = Instantiate(TimeBreakPrefab).GetComponent<TextMeshProUGUI>();
+                chatObject = Instantiate(TimeBreakPrefab);
+
+                var timeBreakUIText = chatObject.GetComponent<TextMeshProUGUI>();
                 timeBreakUIText.gameObject.name = objectTemplateIndex.ToString();
                 timeBreakUIText.text = chatTimebreakObjectTemplate.TimestampText;
                 break;
             case ChatObjectType.Status:
-                var statusObj = Instantiate(MessageStatusPrefab, MessagesHolder);
-                statusObj.name = objectTemplateIndex.ToString();
+                chatObject = Instantiate(MessageStatusPrefab, MessagesHolder);
+                chatObject.name = objectTemplateIndex.ToString();
                 break;
         }
+
+        return chatObject;
     }
 
     bool AddsBreak(ChatMessage chatMessage, bool ignoreFromCase = false)
