@@ -1,0 +1,139 @@
+{
+  "Conversations": [
+    {
+      "Participants": ["xa_hamza", "elon_musk"],
+      "Messages": [
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1683399600000,
+          "Content": "Hi"
+        },
+        {
+          "SenderName": "elon_musk",
+          "TimestampMS": 1683486000000,
+          "Content": "Hello"
+        }
+      ]
+    },
+    {
+      "Participants": ["xa_hamza", "iqtadaraqsa"],
+      "Messages": [
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1680807600000,
+          "Content": "Hello m8"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1680894000000,
+          "Content": "Hello"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1680894000000,
+          "Content": "Hello"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1680894000000,
+          "Content": "Hello"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1680894000000,
+          "Content": "Hello"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1680894000000,
+          "Content": "Hello"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1680894000000,
+          "Content": "Hello"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1681066800000,
+          "Content": "Ayoo"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1681066860000,
+          "Content": "I heard you were in town?"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1681066920000,
+          "Content": "Wanna hang out, maybe?"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1681066920000,
+          "Content": "Wanna hang out, maybe?"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1681066920000,
+          "Content": "Wanna hang out, maybe?"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1681066920000,
+          "Content": "Wanna hang out, maybe?"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1681066980000,
+          "Content": "Wait a minute"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1681067040000,
+          "Content": "What you up to?"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1681067100000,
+          "Content": "Not much, you?"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1681068900000,
+          "Content": "You there?"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1683901140000,
+          "Content": "Yeah, back"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1683903000000,
+          "Content": "What took you so long?"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1683903060000,
+          "Content": "Got busy with an emergency bro"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1683905400000,
+          "Content": "Yeah sure, hope all is well"
+        },
+        {
+          "SenderName": "xa_hamza",
+          "TimestampMS": 1683905400000,
+          "Content": "Yeah sure, hope all is well"
+        },
+        {
+          "SenderName": "iqtadaraqsa",
+          "TimestampMS": 1683962100000,
+          "Content": "Yeah all good"
+        }
+      ]
+    }
+  ]
+}
