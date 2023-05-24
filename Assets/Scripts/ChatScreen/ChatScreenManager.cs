@@ -60,7 +60,6 @@ public class ChatScreenManager : MonoBehaviour
     {
         Chat = chat;
         ChatAreaObject.GetComponent<ChatAreaManager>().Initialise();
-        ChatAreaObject.SetActive(true);
 
         if (Chat.Blocked)
         {

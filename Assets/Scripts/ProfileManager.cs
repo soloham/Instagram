@@ -25,6 +25,7 @@ public class ProfileManager : MonoBehaviour
     public Profile LoggedInProfile => Profiles.SingleOrDefault(x => x.Handle == LoggedInProfileHandle);
 
     public TextMeshProUGUI statusText; // Reference to the StatusText field in the UI
+    public TextMeshProUGUI fpsText;
 
     public GameObject SplashImageObject;
 
@@ -46,7 +47,7 @@ public class ProfileManager : MonoBehaviour
     {
         SplashImageObject.SetActive(true);
 
-        Application.targetFrameRate = 60; // Or Application.targetFrameRate = Screen.currentResolution.refreshRate;
+        Application.targetFrameRate = Screen.currentResolution.refreshRate;
 
         //var json = GetAllChatMessagesAsJson();
 
@@ -77,9 +78,12 @@ public class ProfileManager : MonoBehaviour
     }
 
     // Update is called once per frame
+    private float deltaTime;
     void Update()
     {
-
+        deltaTime += (Time.deltaTime - deltaTime) * 0.1f;
+        float fps = 1.0f / deltaTime;
+        fpsText.text = "FPS: " + Mathf.RoundToInt(fps);
     }
 
     string GetAllChatMessagesAsJson()

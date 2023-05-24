@@ -95,7 +95,7 @@ public class ChatAreaManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        //VirtualScrollRect.OnReachedEnd -= VirtualScrollRect_OnReachedEnd;
+        VirtualScrollRect.OnReachedEnd -= VirtualScrollRect_OnReachedEnd;
     }
 
     public void Initialise()
@@ -105,12 +105,14 @@ public class ChatAreaManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
+        CurrentPage = 1;
+
         allMessages = CurrentChat.ToChatMessages().Messages;
         TotalMessages = allMessages.Count;
 
-        //StartCoroutine(InstantiatePagedMessages());
+        StartCoroutine(InstantiatePagedMessages(true));
 
-        //VirtualScrollRect.OnReachedEnd += VirtualScrollRect_OnReachedEnd;
+        VirtualScrollRect.OnReachedEnd += VirtualScrollRect_OnReachedEnd;
     }
 
     public bool isLoadingPage = false;
@@ -137,9 +139,10 @@ public class ChatAreaManager : MonoBehaviour
 
         yield return new WaitForSeconds(UnityEngine.Random.Range(0.5f, 1.1f));
         Destroy(loaderObject);
-        yield return StartCoroutine(InstantiatePagedMessages());
         CurrentPage++;
+        yield return StartCoroutine(InstantiatePagedMessages());
         isLoadingPage = false;
+        FindObjectOfType<VirtualScrollRect>().UpdateVisibleMessages();
     }
 
     private string GetMessageTimestamp(ChatMessage chatMessage)
@@ -153,7 +156,7 @@ public class ChatAreaManager : MonoBehaviour
     }
 
     List<ChatMessage> pagedMessages;
-    public IEnumerator InstantiatePagedMessages()
+    public IEnumerator InstantiatePagedMessages(bool initialising = false)
     {
         pagedMessages = allMessages
             .Skip(TotalMessages - (CurrentPage * PageSize))
@@ -164,15 +167,47 @@ public class ChatAreaManager : MonoBehaviour
 
         pagedMessages.Reverse();
 
+        var oldChildCount = MessagesHolder.childCount;
+
         foreach (var chatMessage in pagedMessages)
         {
             InstantiateMessage(chatMessage);
         }
 
-        yield return new WaitForSeconds(0);
+        yield return new WaitForEndOfFrame();
         loaderObject = Instantiate(MessageLoaderPrefab, MessagesHolder);
 
         loaderObject.GetComponent<MessagesLoader>().Initialise(GetMessageTimestamp(pagedMessages.Last()));
+
+        for (int i = oldChildCount - 1; i < MessagesHolder.childCount; i++)
+        {
+            if (i < 0)
+            {
+                continue;
+            }
+
+            var child = MessagesHolder.GetChild(i);
+
+            var isMessage = child.GetComponent<MessageUI>() != null;
+            if (!isMessage)
+            {
+                child.gameObject.SetActive(!initialising || i < 30);
+                continue;
+            }
+
+            Destroy(child.GetComponent<VerticalLayoutGroup>());
+            Destroy(child.GetComponent<LayoutElement>());
+            Destroy(child.GetComponent<ContentSizeFitter>());
+
+            child.GetComponentsInChildren<VerticalLayoutGroup>().ToList().ForEach(x => Destroy(x));
+            child.GetComponentsInChildren<HorizontalLayoutGroup>().ToList().ForEach(x => Destroy(x));
+            child.GetComponentsInChildren<LayoutElement>().ToList().ForEach(x => Destroy(x));
+            child.GetComponentsInChildren<ContentSizeFitter>().ToList().ForEach(x => Destroy(x));
+
+            child.gameObject.SetActive(!initialising || i < 30);
+        }
+
+        FindObjectOfType<VirtualScrollRect>().UpdateVisibleMessages(false);
     }
 
     public void InstantiateMessage(int index)
@@ -290,6 +325,7 @@ public class ChatAreaManager : MonoBehaviour
         if (isLast && IsOurs)
         {
             var messageStatusObj = Instantiate(MessageStatusPrefab, MessagesHolder);
+            messageStatusObj.transform.SetAsFirstSibling();
         }
     }
 
