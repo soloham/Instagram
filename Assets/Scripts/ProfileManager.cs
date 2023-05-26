@@ -13,6 +13,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
+using Google.Apis.Auth.OAuth2;
+using Assets.Scripts.Helpers;
+using System.Threading.Tasks;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+
 public class ProfileManager : MonoBehaviour
 {
     public static ProfileManager Instance;
@@ -29,13 +37,11 @@ public class ProfileManager : MonoBehaviour
 
     public GameObject SplashImageObject;
 
-    // Replace with the download link for the latest settings
-    private string settingsDownloadLink =
-        "https://drive.google.com/uc?export=download&id=12rcOzFkuT9sHuF5XwQz5szkaVSlufPVY";
+    private string driveApiKey = "AIzaSyA2Ng8dAHcgXASAw6tkIWeF_hVGtublwO4";
 
-    // Replace with the download link for the latest messages
-    private string messagesDownloadLink =
-        "https://drive.google.com/uc?export=download&id=1M8YZzGzl5TNBXXWyTTIslGzO4YD6dyYG";
+    public TextAsset credentialsFile;
+
+    CancellationTokenSource cancellationTokenSource;
 
     private void Awake()
     {
@@ -43,7 +49,7 @@ public class ProfileManager : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    IEnumerator Start()
+    async UniTaskVoid Start()
     {
         SplashImageObject.SetActive(true);
 
@@ -55,18 +61,23 @@ public class ProfileManager : MonoBehaviour
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             SetStatusText("No internet connection available. Skipping update.");
-            yield break;
+            return;
         }
 
+        await InitialiseData();
+    }
+
+    private async Task InitialiseData()
+    {
         var currentSettings = GetDownloadedSettings();
 
-        yield return StartCoroutine(DownloadJson(settingsDownloadLink, GetSettingsFilePath(), "Settings"));
+        await DriveHelper.DownloadFileByName("settings.json", GetSettingsFilePath(), SetStatusText);
 
         var latestSettings = GetDownloadedSettings();
 
         if (currentSettings == null || (latestSettings.Version > currentSettings.Version && latestSettings.ForceLoadMessage))
         {
-            yield return StartCoroutine(DownloadJson(messagesDownloadLink, GetMessagesFilePath(), "Messages"));
+            await DriveHelper.DownloadFileByName("allChatMessages.json", GetMessagesFilePath(), SetStatusText);
         }
 
         ImportChatMessages();
@@ -75,15 +86,40 @@ public class ProfileManager : MonoBehaviour
         DMSreenMessagesManager.Instance.Initialise();
 
         SplashImageObject.SetActive(false);
+
+        foreach (var profile in Profiles)
+        {
+            foreach (var chat in profile.Chats)
+            {
+                var chatMessages = chat.ToChatMessages();
+                for (int i = chatMessages.Messages.Count - 1; i >= 0; i--)
+                {
+                    if (!Application.isPlaying)
+                    {
+                        return;
+                    }
+
+                    var message = chatMessages.Messages[i].Message;
+
+                    if (message.Photos?.Count > 0)
+                    {
+                        await MessagePhotoManager.EnsurePhotoExists(message.Photos.First().Uri);
+                    }
+                }
+            }
+        }
     }
 
     // Update is called once per frame
     private float deltaTime;
     void Update()
     {
-        deltaTime += (Time.deltaTime - deltaTime) * 0.1f;
-        float fps = 1.0f / deltaTime;
-        fpsText.text = "FPS: " + Mathf.RoundToInt(fps);
+        if (fpsText != null)
+        {
+            deltaTime += (Time.deltaTime - deltaTime) * 0.1f;
+            float fps = 1.0f / deltaTime;
+            fpsText.text = "FPS: " + Mathf.RoundToInt(fps);
+        }
     }
 
     string GetAllChatMessagesAsJson()
@@ -115,26 +151,6 @@ public class ProfileManager : MonoBehaviour
         return Path.Combine(Application.persistentDataPath, "settings.json");
     }
 
-    IEnumerator DownloadJson(string downloadUrl, string filePath, string type)
-    {
-        SetStatusText($"Downloading {type}...");
-
-        using (UnityWebRequest unityWebRequest = UnityWebRequest.Get(downloadUrl))
-        {
-            unityWebRequest.downloadHandler = new DownloadHandlerFile(filePath);
-
-            yield return unityWebRequest.SendWebRequest();
-
-            if (unityWebRequest.result != UnityWebRequest.Result.Success)
-            {
-                SetStatusText($"Failed to download {type}: " + unityWebRequest.error);
-                yield break;
-            }
-
-            SetStatusText($"{type} downloaded successfully!");
-        }
-    }
-
     Settings GetDownloadedSettings()
     {
         var path = GetSettingsFilePath();
@@ -163,5 +179,10 @@ public class ProfileManager : MonoBehaviour
         }
 
         Debug.Log(text);
+    }
+
+    private void OnDestroy()
+    {
+        cancellationTokenSource?.Cancel();
     }
 }

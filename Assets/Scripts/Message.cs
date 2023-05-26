@@ -11,8 +11,8 @@ using UnityEngine;
 public class Message
 {
     public string Text;
-    [JsonIgnore]
-    public Sprite Image;
+
+    public List<ChatMessagePhoto> Photos;
 
     public UDateTime SentAt;
     public UDateTime DeliveredAt => SentAt;

@@ -1,15 +1,3 @@
-using Assets.Scripts.ChatScreen;
-using Assets.Scripts.Extensions;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-
-using TMPro;
-
-using Unity.VisualScripting;
-
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,8 +5,6 @@ using UnityEngine.UI;
 [System.Serializable]
 public class VirtualScrollRect : ScrollRectFaster
 {
-    private int totalElements;
-    private int visibleMessages = 16;
     private int firstVisibleElementIndex;
     private int lastVisibleElementIndex;
 
@@ -118,12 +104,15 @@ public class VirtualScrollRect : ScrollRectFaster
 
             if (wasActive && !isActive)
             {
-
             }
 
             if (!wasActive && isActive)
             {
-
+                var messageUI = obj.GetComponent<MessageUI>();
+                if (messageUI != null)
+                {
+                    messageUI.OnEnteredView();
+                }
             }
 
             obj.SetActive(isActive);
@@ -132,6 +121,7 @@ public class VirtualScrollRect : ScrollRectFaster
             {
                 content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y + (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
             }
+
         }
     }
 

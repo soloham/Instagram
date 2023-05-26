@@ -22,7 +22,8 @@ public class ChatMessage
         {
             SenderName = From.Handle,
             TimestampMS = new DateTimeOffset(Message.DeliveredAt.dateTime).ToUnixTimeMilliseconds(),
-            Content = Message.Text
+            Content = Message.Text,
+            Photos = Message.Photos
         };
     }
 
@@ -36,7 +37,8 @@ public class ChatMessage
                 {
                     dateTime = DateTimeOffset.FromUnixTimeMilliseconds(raw.TimestampMS).DateTime
                 },
-                Text = raw.Content
+                Text = raw.Content,
+                Photos = raw.Photos
             },
             From = ProfileManager.Instance.Profiles.Find(x => x.Handle == raw.SenderName)
         };
@@ -48,6 +50,15 @@ public class ChatMessageRaw
     public string SenderName;
     public long TimestampMS;
     public string Content;
+    public List<ChatMessagePhoto> Photos;
+}
+
+public class ChatMessagePhoto
+{
+    public string Uri { get; set; }
+    public int Timestamp { get; set; }
+    public float Width { get; set; }
+    public float Height { get; set; }
 }
 
 public class ChatAreaManager : MonoBehaviour
@@ -188,26 +199,59 @@ public class ChatAreaManager : MonoBehaviour
 
             var child = MessagesHolder.GetChild(i);
 
-            var isMessage = child.GetComponent<MessageUI>() != null;
+            var messageUI = child.GetComponent<MessageUI>();
+            var isVisible = !initialising || i < 30;
+            var isMessage = messageUI != null;
             if (!isMessage)
             {
-                child.gameObject.SetActive(!initialising || i < 30);
+                child.gameObject.SetActive(isVisible);
+
                 continue;
             }
 
-            Destroy(child.GetComponent<VerticalLayoutGroup>());
-            Destroy(child.GetComponent<LayoutElement>());
-            Destroy(child.GetComponent<ContentSizeFitter>());
+            if (isMessage)
+            {
+                if (messageUI.ChatMessage.Message.Photos?.Count > 0)
+                {
+                    if (isVisible)
+                    {
+                        messageUI.OnEnteredView();
+                    }
 
-            child.GetComponentsInChildren<VerticalLayoutGroup>().ToList().ForEach(x => Destroy(x));
-            child.GetComponentsInChildren<HorizontalLayoutGroup>().ToList().ForEach(x => Destroy(x));
-            child.GetComponentsInChildren<LayoutElement>().ToList().ForEach(x => Destroy(x));
-            child.GetComponentsInChildren<ContentSizeFitter>().ToList().ForEach(x => Destroy(x));
+                    ToggleLayoutComponents(child.gameObject);
+                }
+                else DestroyLayoutComponents(child.gameObject);
+            }
+            else DestroyLayoutComponents(child.gameObject);
 
             child.gameObject.SetActive(!initialising || i < 30);
         }
 
         FindObjectOfType<VirtualScrollRect>().UpdateVisibleMessages(false);
+    }
+
+    void ToggleLayoutComponents(GameObject obj, bool enable = false)
+    {
+        obj.GetComponent<VerticalLayoutGroup>().enabled = enable;
+        obj.GetComponent<LayoutElement>().enabled = enable;
+        obj.GetComponent<ContentSizeFitter>().enabled = enable;
+
+        obj.GetComponentsInChildren<VerticalLayoutGroup>().ToList().ForEach(x => x.enabled = enable);
+        obj.GetComponentsInChildren<HorizontalLayoutGroup>().ToList().ForEach(x => x.enabled = enable);
+        obj.GetComponentsInChildren<LayoutElement>().ToList().ForEach(x => x.enabled = enable);
+        obj.GetComponentsInChildren<ContentSizeFitter>().ToList().ForEach(x => x.enabled = enable);
+    }
+
+    void DestroyLayoutComponents(GameObject obj)
+    {
+        Destroy(obj.GetComponent<VerticalLayoutGroup>());
+        Destroy(obj.GetComponent<LayoutElement>());
+        Destroy(obj.GetComponent<ContentSizeFitter>());
+
+        obj.GetComponentsInChildren<VerticalLayoutGroup>().ToList().ForEach(x => Destroy(x));
+        obj.GetComponentsInChildren<HorizontalLayoutGroup>().ToList().ForEach(x => Destroy(x));
+        obj.GetComponentsInChildren<LayoutElement>().ToList().ForEach(x => Destroy(x));
+        obj.GetComponentsInChildren<ContentSizeFitter>().ToList().ForEach(x => Destroy(x));
     }
 
     public void InstantiateMessage(int index)

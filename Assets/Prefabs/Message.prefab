@@ -606,6 +606,8 @@ MonoBehaviour:
   IndependentRoundnessComponent: {fileID: 2611963517795208859}
   OurMessageColor: {r: 0.37647063, g: 0.3254902, b: 0.8117648, a: 1}
   TheirMessageColor: {r: 0.14901961, g: 0.14901961, b: 0.14901961, a: 1}
+  ImageLoadingColor: {r: 0.09433961, g: 0.09433961, b: 0.09433961, a: 1}
+  MessagePhoto: {fileID: 2647491772116707900}
 --- !u!114 &5379012058318477553
 MonoBehaviour:
   m_ObjectHideFlags: 0

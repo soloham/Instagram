@@ -1,7 +1,14 @@
+using Assets.Scripts.Helpers;
+
+using Cysharp.Threading.Tasks;
+
 using Nobi.UiRoundedCorners;
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 using TMPro;
 
@@ -22,8 +29,11 @@ public class MessageUI : MonoBehaviour
 
     public Color OurMessageColor;
     public Color TheirMessageColor;
+    public Color ImageLoadingColor;
 
     public ChatMessage ChatMessage;
+
+    public Image MessagePhoto;
 
     // Start is called before the first frame update
     void Start()
@@ -61,5 +71,69 @@ public class MessageUI : MonoBehaviour
         }
 
         MessageText.text = ChatMessage.Message.Text;
+
+        if (ChatMessage.Message != null && ChatMessage.Message.Photos != null && ChatMessage.Message.Photos.Any() && MessagePhoto.sprite == null)
+        {
+            DisableImageLayoutComponents();
+
+            MessagePhoto.color = ImageLoadingColor;
+
+            float w = ChatMessage.Message.Photos.First().Width;
+            float h = ChatMessage.Message.Photos.First().Height;
+            MessagePhoto.rectTransform.anchorMax = MessagePhoto.rectTransform.anchorMin;
+            MessagePhoto.rectTransform.sizeDelta = new Vector2(w, h);
+        }
+    }
+
+    public async UniTask OnEnteredView()
+    {
+        if (ChatMessage.Message != null && ChatMessage.Message.Photos != null && ChatMessage.Message.Photos.Any() && MessagePhoto.sprite == null)
+        {
+            var photo = ChatMessage.Message.Photos.First();
+
+            await MessagePhotoManager.EnsurePhotoExists(photo.Uri);
+
+            ToggleLayoutComponents(true);
+
+            MessagePhoto.sprite = MessagePhotoManager.LoadSprite(photo.Uri);
+            MessagePhoto.preserveAspect = true;
+            MessagePhoto.color = Color.white;
+
+            RoundnessComponent.radius = 25;
+
+            await Task.Delay(50);
+            DestroyLayoutComponents();
+        }
+    }
+
+    void DisableImageLayoutComponents()
+    {
+        MessageBackground.GetComponent<ContentSizeFitter>().enabled = false;
+        MessageBackground.transform.parent.GetComponent<HorizontalLayoutGroup>().childControlHeight = false;
+        MessageBackground.transform.parent.GetComponent<HorizontalLayoutGroup>().childControlWidth = false;
+    }
+
+    void ToggleLayoutComponents(bool enable = false)
+    {
+        GetComponent<VerticalLayoutGroup>().enabled = enable;
+        GetComponent<LayoutElement>().enabled = enable;
+        GetComponent<ContentSizeFitter>().enabled = enable;
+
+        GetComponentsInChildren<VerticalLayoutGroup>().ToList().ForEach(x => x.enabled = enable);
+        GetComponentsInChildren<HorizontalLayoutGroup>().ToList().ForEach(x => x.enabled = enable);
+        GetComponentsInChildren<LayoutElement>().ToList().ForEach(x => x.enabled = enable);
+        GetComponentsInChildren<ContentSizeFitter>().ToList().ForEach(x => x.enabled = enable);
+    }
+
+    void DestroyLayoutComponents()
+    {
+        Destroy(GetComponent<VerticalLayoutGroup>());
+        Destroy(GetComponent<LayoutElement>());
+        Destroy(GetComponent<ContentSizeFitter>());
+
+        GetComponentsInChildren<VerticalLayoutGroup>().ToList().ForEach(x => Destroy(x));
+        GetComponentsInChildren<HorizontalLayoutGroup>().ToList().ForEach(x => Destroy(x));
+        GetComponentsInChildren<LayoutElement>().ToList().ForEach(x => Destroy(x));
+        GetComponentsInChildren<ContentSizeFitter>().ToList().ForEach(x => Destroy(x));
     }
 }
