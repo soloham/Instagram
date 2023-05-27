@@ -9,6 +9,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -23,7 +24,7 @@
                 SetStatusText($"Searching for file: {fileName}...");
 
             // Create a service account credential using the service account email and required scopes
-            var credential = new ServiceAccountCredential(new ServiceAccountCredential.Initializer("insta-666@instagram-387816.iam.gserviceaccount.com")
+            var credential = new ServiceAccountCredential(new ServiceAccountCredential.Initializer("instagram@instagram-388012.iam.gserviceaccount.com")
             {
                 Scopes = new string[] {
                 DriveService.Scope.Drive,
@@ -33,7 +34,7 @@
                 DriveService.Scope.DriveMetadataReadonly,
                 DriveService.Scope.DriveReadonly,
             }
-            }.FromPrivateKey("-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDOhT7QRzFaNOvb\nRqWMJyiJE2KvGjPs8aga6apCYO0K61bULau1omkvi6Cuyx9/3+whS8lwhvNPZl+D\n4UAarCcsNcdhi9zU3NLuSL+uS6lkht3FSlQc1oIetMF49mU50s+mkB4SkLoBc2yp\nGN+QSylJhk1XNh/qigmfc/vJcpW/7BGD2Bpugf2onoQaZcgEcpG8bHConLiyRWpu\nMpjEDfe6X18yVoth20bRlmDKkjRBiey5rrRPMof6gaefX+ghZAmrB7F2DaWF0ucG\nBJbtbg54cqKGa7n7W79ia3faAIOoyqqE52cLDMpCPAYLF1Goo7floCMj9yfn9v2g\n1+V3X7D3AgMBAAECggEACpJquWyLj1SaNIcxE6Wh+Ae/INgJ4ORkP744qwhWS+SU\nPDRewaquER2vJ2cTa7nv5TjlFBa0cP6Km9rK8tm0xsO1kIUBfv+hkti0TmQQtrh4\ntPOtyxCSvYrGYSIr4xBWEWCF9D6tvEPx7n/ezJsP8OWaBp3+d2Etm5iyXzObGt5k\nyEvFNQ00Wk2x41FpnVVt1/Usj4s2eBagcYKjKiNnGCPB1RdYKhYmlXdJ+Fp4LG7+\nDwRBAnaWLtxzcIbN6yArXBouqWE7aUEroNwdO0H+P95Cyq3WwKDoY48p8iZ3xGqP\nk/mwCiWZhARCT4DV6ajzlJgJzwHXWdtaesZ2lvEogQKBgQD1Frslw4WOzEGF1cEX\nOxVV4vkPwT0HSe6kVgMNyXUiO4MaUWckOPBeBHOGcjslcrDmNkfiWWfzQKrC2xMp\n8QSGzv4FJedvaULg6+TxxP+35RtzIVtr86ZW4UfzHCCc7tuDKX+ZtO5wKqHaa/Y6\nOOe/PlTNDyT1jRTak9ZMsS+kYQKBgQDXtvPfdbWqgJJB7yGxvz76OMGYd9BfERin\nUvGu3lqtYFLeV7shZCiH538+azJW8Sogjv5LjhRCvzv3540/UmqDXU1XUvSNQBxp\nULGnrnwGs58mtXoB39oGisVCItJxlm9iEnqBKULIzMVrcu/GNV6/rcAFSUMNXGO/\nYncoRp9UVwKBgB6c+j9bTsFpbf3Dl1zJen7B3Q5EutTAPVi1jagZM9JU0Klm5ZU2\nr39u2uc+OXkR/FqlCRGSzVMrDqlMJ/ajLkeQb1ZBR8k4wqvJi01PqAlWSrl0vzCa\nvHo5pX0OVFyF0VFuy4tteCL2kETyG01mcjwHExyR+bHaL3Kl6KynrSXBAoGBAJf4\nuYkVqX3MhL3U1d0eyiSItcNPrco8Bi1jnwc+eY2pzdf84MYehPtyGVAFP3rG/pHf\ni8H4/8ciaQI27GjPDGEt6135AHc+0oVTp0VmBNTH2PjxY1pMtZJkU6JLXA1QGXpz\nYED8q6NBuFgBqnDuiqjppN1Uhtuz2kYr/ZyvXHKTAoGBAKhPVPyCwWj7nY+0SvQC\n36A+dq4IUnsyNIDIzf08FUn8zYxGylBpdcCb1c9iqx5DY4jhABm2Z4wccs1RgzMT\nyJhkCVnnLnXMF4BtlCVo/WcBcYMYZmXt5P/YCBzvd+hm7yq+BoZVTan4na1VyZDD\nzV8lZ0lr8M0XXk/gYRbtZ5tC\n-----END PRIVATE KEY-----"));
+            }.FromPrivateKey("-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCj/X3XtW6SpaSS\nr10/ZTMeuofh5mB/+IK1jMtJpIU1n6AiMnuTYDGFIFoy4hMJ5l7ZHrhV1YN6Or+q\nrWVLIYIpeoBlQ8mI+SOLEsMyBoetzyvEqqXrjhssC5jaEWCzYF2rQVfDPko6rIDs\n9fuI3ZlBG+epdu8Gk+u/oYd/Pm+MqfWDOTxYfS0tBeqzeHyOhMRmWQeAHnCXV6/H\nGb9NesOmqATd++AvjpoPo/S3VDZx9gIVbVI3q6vEhT4tcuOXk1P+TG2sRhjWFusY\noSkiC5g7xdonlGBQ7l35MYVo/rDkLGmav62MUGjulu5O0jJtcmWQuE9rCfkcye/O\n+me3Uu77AgMBAAECggEAFu2bSayRUCmer++a3wE8O4Ci/P+j4GCTjeSoi5xYD55I\n2l8qjfl2EwHp+pFHTiwKeNrltQKMRmuuXqOttOpzc28wQnhO1jrXMFuoNPdawv9j\nRDUDy8JrpCXe8iZZ2dqQXiBdr+umnzt9LyRZTdKF2eeX5Ua+trG51Wo1MqI9IHJt\nbwj6fjISxMaWfVTYnGeflVXAFXWkYNfJK7e0+evo5mxZ5Y4LKjKO9Y9OUZa86Ao/\nEgOKoXu20PXTALJ5ADSFeIdbr9bwpy7s19QbSpIbclRfShnf0/z+iIHTNW2CePpl\nWch93hkxUyh/ay5essd2Teg9743gnKqOHqn9MhrgAQKBgQDc7RyEZqBXZcxSlo+E\n4IEiZGqOifCJFmyEqJfgx60YkNJHvNXdSwOSbbnogjYiFQtuV8jGv+YhjwW2gcsk\nr+EjRXpwH4tkMiWn63iv6bZ9q84rWm5WVG17hffqqCcCD2zxFhhJ7dx3YBGWoM1W\ny7ijPw/5Y3A2tC3E2wTnwVc++wKBgQC+BmKiO1Mu7xxybRynvac2eT9QjokLR3j7\nzijk0bcggFRKgCs3NvggBPoBAdIoLXHS9U6WjwjkH76BFyYs9q81v92UMDUlZYME\nPOqywRuiRnBGmwzleYFKAQCsg9xZ9+XuzfgAVlBsB3GEnR9DXO/KKMvZp0Yptbcp\njMd9OGQQAQKBgQCVrgguJCHqVMwUAHIIQtr65DHVlNtk5c5sKpWL83zxMd1mQShc\nn+AxqynTv7TRbpSqE8ux7H4MqoviVRm/J3JPpVkI8jZMkjU1CbJg7OV5S5eJg+FR\nmC39DI0lbPvQx4a16JRYMlG2h14jQZsdfTUBVU6LVrXGOljwELvIERP9VQKBgGZf\ndEXoZhET+qReyiBIWUxMl+KjV4t/DtvBnmBf5yOYX1DfqeiOMbC2XaWrQHgqu3am\nd5c/KdAUlgJf4U45+/yeCBasvgUOoj3nP53b0TJkdlpjb9g01IV08tL+GvlRR0uX\nJTOxTJRWkj6ak1wsNncX8XKp3m/cGPhGgragabABAoGAaRWXmwMZfqS4fz9ATYlg\nbmLmt5qSu1iy1OfMFrDhFo2K4wMyvUbwv1+ZobuSX9d8z2zLXdIFoeDxK5ui7rIm\ny7/kqoQQjddFPHzmDvfKyyidCVgYNwjcqDV8FHpHghGfD7DTcHgFm1REdQdySFh4\nhrkdytIUS+q6btPA8973cuk=\n-----END PRIVATE KEY-----"));
 
             // Create the Drive service using the service account credential
             var service = new DriveService(new BaseClientService.Initializer
@@ -63,23 +64,32 @@
             if (SetStatusText != null)
                 SetStatusText($"Downloading file: {file.Name}...");
 
-            using (UnityWebRequest unityWebRequest = UnityWebRequest.Get($"https://drive.google.com/uc?export=download&id={file.Id}"))
+            // Create the request to download the file
+            var request = service.Files.Get(file.Id);
+
+            // Get the file content as a stream
+            using (var stream = new MemoryStream())
             {
-                unityWebRequest.downloadHandler = new DownloadHandlerFile(savePath);
+                var result = await request.DownloadAsync(stream);
 
-                await unityWebRequest.SendWebRequest();
-
-                if (unityWebRequest.result != UnityWebRequest.Result.Success)
+                if (result.Status != Google.Apis.Download.DownloadStatus.Completed)
                 {
                     if (SetStatusText != null)
-                        SetStatusText($"Failed to download {file.Name}: " + unityWebRequest.error);
+                        SetStatusText($"Failed to download {file.Name}: " + result.Exception.Message);
 
                     return;
                 }
 
-                if (SetStatusText != null)
-                    SetStatusText($"File '{file.Name}' downloaded successfully!");
+                // Save the file content to the destination path
+                using (var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write))
+                {
+                    stream.Position = 0;
+                    await stream.CopyToAsync(fileStream);
+                }
             }
+
+            if (SetStatusText != null)
+                SetStatusText($"File '{file.Name}' downloaded successfully!");
         }
 
     }

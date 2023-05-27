@@ -35,6 +35,8 @@ public class MessageUI : MonoBehaviour
 
     public Image MessagePhoto;
 
+    public bool isImageLayoutDestroyed;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -47,7 +49,7 @@ public class MessageUI : MonoBehaviour
 
     }
 
-    public void Initialise(ChatMessage chatMessage)
+    public async UniTask Initialise(ChatMessage chatMessage)
     {
         ChatMessage = chatMessage;
         var isOurs = ChatMessage.From == ProfileManager.Instance.LoggedInProfile;
@@ -74,26 +76,16 @@ public class MessageUI : MonoBehaviour
 
         if (ChatMessage.Message != null && ChatMessage.Message.Photos != null && ChatMessage.Message.Photos.Any() && MessagePhoto.sprite == null)
         {
-            DisableImageLayoutComponents();
-
-            MessagePhoto.color = ImageLoadingColor;
+            var photo = ChatMessage.Message.Photos.First();
 
             float w = ChatMessage.Message.Photos.First().Width;
             float h = ChatMessage.Message.Photos.First().Height;
-            MessagePhoto.rectTransform.anchorMax = MessagePhoto.rectTransform.anchorMin;
-            MessagePhoto.rectTransform.sizeDelta = new Vector2(w, h);
-        }
-    }
 
-    public async UniTask OnEnteredView()
-    {
-        if (ChatMessage.Message != null && ChatMessage.Message.Photos != null && ChatMessage.Message.Photos.Any() && MessagePhoto.sprite == null)
-        {
-            var photo = ChatMessage.Message.Photos.First();
+            MessageText.enabled = false;
+
+            AdjustPhotoScale(w, h);
 
             await MessagePhotoManager.EnsurePhotoExists(photo.Uri);
-
-            ToggleLayoutComponents(true);
 
             MessagePhoto.sprite = MessagePhotoManager.LoadSprite(photo.Uri);
             MessagePhoto.preserveAspect = true;
@@ -101,9 +93,31 @@ public class MessageUI : MonoBehaviour
 
             RoundnessComponent.radius = 25;
 
-            await Task.Delay(50);
+            await Task.Delay(1000);
+
             DestroyLayoutComponents();
+            isImageLayoutDestroyed = true;
+            //MessagePhoto.rectTransform.localScale = new Vector3(0.8f, 0.8f, 1);
         }
+    }
+
+    private void AdjustPhotoScale(float w, float h)
+    {
+        DisableImageLayoutComponents();
+
+        var ratio = w / h;
+
+        if (ratio < 1)
+        {
+            w *= ratio;
+            h *= ratio;
+        }
+
+        MessagePhoto.rectTransform.anchorMax = MessagePhoto.rectTransform.anchorMin;
+        MessagePhoto.rectTransform.sizeDelta = new Vector2(w, h);
+
+        var fillerRect = MessagePhoto.transform.parent.GetChild(1).GetComponent<RectTransform>();
+        fillerRect.sizeDelta = new Vector2(fillerRect.sizeDelta.x, fillerRect.sizeDelta.y);
     }
 
     void DisableImageLayoutComponents()

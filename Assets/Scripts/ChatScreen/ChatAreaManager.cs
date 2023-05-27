@@ -213,12 +213,10 @@ public class ChatAreaManager : MonoBehaviour
             {
                 if (messageUI.ChatMessage.Message.Photos?.Count > 0)
                 {
-                    if (isVisible)
+                    if (!isVisible)
                     {
-                        messageUI.OnEnteredView();
+                        ToggleLayoutComponents(child.gameObject);
                     }
-
-                    ToggleLayoutComponents(child.gameObject);
                 }
                 else DestroyLayoutComponents(child.gameObject);
             }

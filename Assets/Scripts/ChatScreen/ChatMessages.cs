@@ -6,6 +6,15 @@
     using System.Text;
     using System.Threading.Tasks;
 
+    public class ProfileRaw
+    {
+        public string Name;
+
+        public string Handle;
+
+        public string PictureUID;
+    }
+
     public class ChatMessagesRaw
     {
         public List<string> Participants;
@@ -21,13 +30,10 @@
         public bool Blocked;
     }
 
-    public class AllChatMessages
-    {
-        public List<ChatMessagesRaw> Conversations { get; set; } = new List<ChatMessagesRaw>();
-    }
-
     public class AllChatMessagesRaw
     {
+        public List<ProfileRaw> Profiles { get; set; }
+
         public List<ChatMessagesRaw> Conversations { get; set; } = new List<ChatMessagesRaw>();
     }
 }

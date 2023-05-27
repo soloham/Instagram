@@ -37,8 +37,6 @@ public class ProfileManager : MonoBehaviour
 
     public GameObject SplashImageObject;
 
-    private string driveApiKey = "AIzaSyA2Ng8dAHcgXASAw6tkIWeF_hVGtublwO4";
-
     public TextAsset credentialsFile;
 
     CancellationTokenSource cancellationTokenSource;
@@ -80,7 +78,7 @@ public class ProfileManager : MonoBehaviour
             await DriveHelper.DownloadFileByName("allChatMessages.json", GetMessagesFilePath(), SetStatusText);
         }
 
-        ImportChatMessages();
+        await ImportChatMessages();
 
         DMScreenHeaderManager.Instance.Initialise();
         DMSreenMessagesManager.Instance.Initialise();
@@ -163,10 +161,28 @@ public class ProfileManager : MonoBehaviour
         return JsonConvert.DeserializeObject<Settings>(json);
     }
 
-    void ImportChatMessages()
+    async UniTask ImportChatMessages()
     {
         var json = File.ReadAllText(GetMessagesFilePath());
         var allChatMessages = JsonConvert.DeserializeObject<AllChatMessagesRaw>(json);
+
+        var initialiseProfilesTasks = allChatMessages.Profiles.Select(async x =>
+        {
+            await MessagePhotoManager.EnsurePhotoExists(x.PictureUID);
+
+            var profile = new Profile
+            {
+                Name = x.Name,
+                Handle = x.Handle,
+
+                Picture = MessagePhotoManager.LoadSprite(x.PictureUID)
+            };
+            profile.PictureBorderless = profile.Picture;
+
+            return profile;
+        }).ToArray();
+
+        Profiles = (await UniTask.WhenAll(initialiseProfilesTasks)).ToList();
 
         Profiles.ForEach(x => x.Hydrate(allChatMessages));
     }

@@ -108,11 +108,7 @@ public class VirtualScrollRect : ScrollRectFaster
 
             if (!wasActive && isActive)
             {
-                var messageUI = obj.GetComponent<MessageUI>();
-                if (messageUI != null)
-                {
-                    messageUI.OnEnteredView();
-                }
+
             }
 
             obj.SetActive(isActive);
@@ -121,7 +117,6 @@ public class VirtualScrollRect : ScrollRectFaster
             {
                 content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y + (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
             }
-
         }
     }
 
