@@ -29,6 +29,8 @@ public class ProfileManager : MonoBehaviour
 
     public string LoggedInProfileHandle;
 
+    public Settings Settings { get; set; }
+
     [HideInInspector]
     public Profile LoggedInProfile => Profiles.SingleOrDefault(x => x.Handle == LoggedInProfileHandle);
 
@@ -67,21 +69,30 @@ public class ProfileManager : MonoBehaviour
 
     private async Task InitialiseData()
     {
-        var currentSettings = GetDownloadedSettings();
+        Settings = GetDownloadedSettings();
 
         await DriveHelper.DownloadFileByName("settings.json", GetSettingsFilePath(), SetStatusText);
 
         var latestSettings = GetDownloadedSettings();
 
-        if (currentSettings == null || (latestSettings.Version > currentSettings.Version && latestSettings.ForceLoadMessage))
+        if (Settings == null || (latestSettings.Version > Settings.Version && latestSettings.ForceLoadMessage))
         {
             await DriveHelper.DownloadFileByName("allChatMessages.json", GetMessagesFilePath(), SetStatusText);
         }
+
+        Settings = latestSettings;
 
         await ImportChatMessages();
 
         DMScreenHeaderManager.Instance.Initialise();
         DMSreenMessagesManager.Instance.Initialise();
+
+        foreach (var feed in Settings.Feeds)
+        {
+            await MessagePhotoManager.EnsurePhotoExists(feed.FeedUID);
+        }
+
+        HomeScreenManager.Instance.InitialiseFeeds();
 
         SplashImageObject.SetActive(false);
 

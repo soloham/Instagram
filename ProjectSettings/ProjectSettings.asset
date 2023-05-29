@@ -155,7 +155,7 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Android: com.Stellarsoft.Instagram
+    Android: com.MetaSt.Instagram
     Standalone: com.DefaultCompany.2DProject
   buildNumber:
     Standalone: 0
@@ -248,7 +248,7 @@ PlayerSettings:
   useCustomProguardFile: 0
   AndroidTargetArchitectures: 3
   AndroidTargetDevices: 0
-  AndroidSplashScreenScale: 1
+  AndroidSplashScreenScale: 2
   androidSplashScreen: {fileID: 2800000, guid: 8174c5b2f6dc3aa43b457e88a5d1a57c, type: 3}
   AndroidKeystoreName: 
   AndroidKeyaliasName: 

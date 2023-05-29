@@ -432,7 +432,7 @@ namespace UnityEngine.UI
 
             if ((Input.GetKeyDown(KeyCode.Escape) || TestBack) && !isLeftCounterpart)
             {
-                if (FindObjectOfType<ChatAreaManager>() == null)
+                if (FindObjectOfType<ChatAreaManager>() == null && !AccountSwitchManager.Instance.LoginScreen.activeSelf)
                     NavigateBackFromDMs();
 
                 TestBack = false;

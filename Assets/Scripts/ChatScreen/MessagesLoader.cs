@@ -7,7 +7,6 @@ public class MessagesLoader : MonoBehaviour
     [SerializeField] private Transform ImageTransform;
 
     [SerializeField] private float rotationSpeed = 60f;
-    [SerializeField] private float resetSpeed = 120f;
 
     public TextMeshProUGUI TimestampTMP;
 

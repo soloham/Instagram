@@ -321,18 +321,18 @@ MonoBehaviour:
     Chats:
     - Messages:
       - Text: Hi
-        Image: {fileID: 0}
         SentAt:
           _dateTime: 05/07/2023 00:00:00
       FromProfileHandle: 
       WithProfileHandle: elon_musk
+      Blocked: 0
     - Messages:
       - Text: Hello m8
-        Image: {fileID: 0}
         SentAt:
           _dateTime: 05/07/2023 00:00:00
       FromProfileHandle: 
       WithProfileHandle: max_33
+      Blocked: 0
   - Name: Elon Musk
     Handle: elon_musk
     Picture: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
@@ -340,11 +340,11 @@ MonoBehaviour:
     Chats:
     - Messages:
       - Text: Hello
-        Image: {fileID: 0}
         SentAt:
           _dateTime: 05/08/2023 00:00:00
       FromProfileHandle: 
       WithProfileHandle: xa_hamza
+      Blocked: 0
   - Name: Max Verstappen
     Handle: max_33
     Picture: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
@@ -352,15 +352,16 @@ MonoBehaviour:
     Chats:
     - Messages:
       - Text: Hello
-        Image: {fileID: 0}
         SentAt:
           _dateTime: 05/08/2023 00:00:00
       FromProfileHandle: 
       WithProfileHandle: xa_hamza
+      Blocked: 0
   Chat:
     Messages: []
     FromProfileHandle: 
     WithProfileHandle: 
+    Blocked: 0
 --- !u!114 &817871510643428085
 MonoBehaviour:
   m_ObjectHideFlags: 0
