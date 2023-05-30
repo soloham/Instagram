@@ -26,7 +26,7 @@ public class ChatUI : MonoBehaviour
     {
         Chat = chat;
 
-        //Picture.sprite = Chat.WithProfile.PictureBorderless;
+        Picture.sprite = Chat.WithProfile.PictureBorderless;
         Username.text = Chat.WithProfile.Name;
         Status.text = Chat.GetStatus();
     }

@@ -4,20 +4,22 @@
 
     public class Settings
     {
-        public int Version { get; set; }
+        public int Version;
 
-        public bool ForceLoadMessage { get; set; }
+        public bool ForceLoadMessage;
 
-        public bool RandomiseFeed { get; set; }
+        public bool AllowEditing;
 
-        public List<HomeFeed> Feeds { get; set; }
+        public bool RandomiseFeed;
+
+        public List<HomeFeed> Feeds;
     }
 
     public class HomeFeed
     {
-        public string FeedUID { get; set; }
+        public string FeedUID;
 
-        public float Width { get; set; }
-        public float Height { get; set; }
+        public float Width;
+        public float Height;
     }
 }

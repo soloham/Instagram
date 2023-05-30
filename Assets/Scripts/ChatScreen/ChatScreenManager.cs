@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+
 using System;
 
 using TMPro;
@@ -29,6 +31,44 @@ public class ChatScreenManager : MonoBehaviour
 
     public bool TestKeyboardHeight;
     public float KeybordHeightToTest;
+
+    [Header("Saver")]
+    public GameObject SaverBtn;
+    public GameObject SaverLoaderObj;
+
+    public delegate UniTask SaveMessagesDelegate();
+    public static event SaveMessagesDelegate OnSave;
+
+    public void SaveAll()
+    {
+        if (!ProfileManager.Instance.IsInEditMode)
+        {
+            return;
+        }
+
+        OnSaveAll();
+    }
+
+    public async UniTask OnSaveAll()
+    {
+        if (!ProfileManager.Instance.IsInEditMode)
+        {
+            return;
+        }
+
+        SaverBtn.SetActive(false);
+        SaverLoaderObj.SetActive(true);
+
+        if (OnSave != null)
+        {
+            await OnSave();
+        }
+
+        await UniTask.Delay(1000);
+
+        SaverBtn.SetActive(true);
+        SaverLoaderObj.SetActive(false);
+    }
 
     // Update is called once per frame
     void Update()

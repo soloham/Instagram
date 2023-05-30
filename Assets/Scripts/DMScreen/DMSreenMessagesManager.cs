@@ -27,6 +27,8 @@ public class DMSreenMessagesManager : MonoBehaviour
 
     public void Initialise()
     {
+        DMScreenNotesManager.Instance.Initialise();
+
         Profiles = ProfileManager.Instance.Profiles;
         foreach (Transform child in ChatsHolder)
         {

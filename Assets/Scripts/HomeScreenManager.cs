@@ -20,14 +20,14 @@ public class HomeScreenManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        ProfileImage.sprite = ProfileManager.Instance.LoggedInProfile.Picture;
-        AddStoryProfileImage.sprite = ProfileManager.Instance.LoggedInProfile.Picture;
-
         Instance = this;
     }
 
-    public void InitialiseFeeds()
+    public void Initialise()
     {
+        ProfileImage.sprite = ProfileManager.Instance.LoggedInProfile.Picture;
+        AddStoryProfileImage.sprite = ProfileManager.Instance.LoggedInProfile.Picture;
+
         foreach (Transform child in FeedsScrollAreaTransform)
         {
             if (child.tag != "Feed")

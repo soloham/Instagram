@@ -4,9 +4,6 @@ using Cysharp.Threading.Tasks;
 
 using Nobi.UiRoundedCorners;
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,6 +27,7 @@ public class MessageUI : MonoBehaviour
     public Color OurMessageColor;
     public Color TheirMessageColor;
     public Color ImageLoadingColor;
+    public Color DeletedColor;
 
     public ChatMessage ChatMessage;
 
@@ -37,16 +35,73 @@ public class MessageUI : MonoBehaviour
 
     public bool isImageLayoutDestroyed;
 
+    public delegate void ManageDelegate(MessageUI messageUI);
+    public static event ManageDelegate OnEdit;
+    public static event ManageDelegate OnDelete;
+    public static event ManageDelegate OnUndelete;
+
+    public GameObject EditHolder;
+
+    public GameObject DeleteButton;
+    public GameObject UndeleteButton;
+
+    private Color UnmarkedColor;
+
     // Start is called before the first frame update
     void Start()
     {
-
+        ProfileManager.OnEditModeChanged += Instance_OnEditModeChanged;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnDestroy()
     {
+        ProfileManager.OnEditModeChanged -= Instance_OnEditModeChanged;
+    }
 
+    private void Instance_OnEditModeChanged(bool isEditingAllowed)
+    {
+        EditHolder.SetActive(isEditingAllowed);
+    }
+
+    public void Edit()
+    {
+        if (OnEdit != null)
+        {
+            OnEdit.Invoke(this);
+        }
+    }
+
+    public void Delete()
+    {
+        if (OnDelete != null)
+        {
+            OnDelete.Invoke(this);
+
+            DeleteButton.SetActive(false);
+            UndeleteButton.SetActive(true);
+        }
+    }
+
+    public void Undelete()
+    {
+        if (OnUndelete != null)
+        {
+            OnUndelete.Invoke(this);
+
+            DeleteButton.SetActive(true);
+            UndeleteButton.SetActive(false);
+        }
+    }
+
+    public void MarkAsDeleted()
+    {
+        UnmarkedColor = MessageBackground.color;
+        MessageBackground.color = DeletedColor;
+    }
+
+    public void UnmarkAsDeleted()
+    {
+        MessageBackground.color = UnmarkedColor;
     }
 
     public async UniTask Initialise(ChatMessage chatMessage)
@@ -70,6 +125,10 @@ public class MessageUI : MonoBehaviour
             bodyRectTransform.anchorMax = new Vector2(1, 0.5f);
             bodyRectTransform.pivot = new Vector2(1, 0.5f);
             bodyRectTransform.anchoredPosition = Vector2.zero;
+        }
+        else
+        {
+            ProfilePicture.sprite = ChatMessage.From.PictureBorderless;
         }
 
         MessageText.text = ChatMessage.Message.Text;
@@ -99,6 +158,8 @@ public class MessageUI : MonoBehaviour
             isImageLayoutDestroyed = true;
             //MessagePhoto.rectTransform.localScale = new Vector3(0.8f, 0.8f, 1);
         }
+
+        EditHolder.SetActive(ProfileManager.Instance.IsInEditMode);
     }
 
     private void AdjustPhotoScale(float w, float h)

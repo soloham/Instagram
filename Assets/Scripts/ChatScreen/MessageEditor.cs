@@ -1,6 +1,5 @@
-using Assets.Scripts;
-
 using System;
+using System.Globalization;
 
 using TMPro;
 
@@ -10,27 +9,46 @@ public class MessageEditor : MonoBehaviour
 {
     public TMP_InputField MessageTextField;
     public TMP_InputField MessageDateField;
+    public TextMeshProUGUI StatusTMP;
 
-    private Message message;
+    private MessageUI messageUI;
 
-    public void Initialise(Message _message)
+    public void Initialise(MessageUI _messageUI)
     {
-        this.message = _message;
+        this.messageUI = _messageUI;
 
-        MessageTextField.text = this.message.Text;
-        MessageDateField.text = this.message.DeliveredAt.ToString();
+        MessageTextField.text = this.messageUI.ChatMessage.Message.Text;
+        MessageDateField.text = this.messageUI.ChatMessage.Message.DeliveredAt.dateTime.ToString(CultureInfo.InvariantCulture);
     }
 
     public void Save()
     {
-        this.message.Text = MessageTextField.text;
-        this.message.SentAt = new UDateTime();
-        this.message.SentAt.dateTime = DateTime.Parse(MessageDateField.text);
+        var isValidDate = DateTime.TryParse(MessageDateField.text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
+
+        if (!isValidDate)
+        {
+            StatusTMP.text = "Date is invalid";
+            return;
+        }
+        else
+        {
+            StatusTMP.text = "";
+        }
+
+        this.messageUI.ChatMessage.Message.Text = MessageTextField.text;
+        this.messageUI.ChatMessage.Message.SentAt.dateTime = dateTime;
+
+        this.messageUI.MessageText.text = this.messageUI.ChatMessage.Message.Text;
+
+        gameObject.SetActive(false);
     }
 
     public void Discard()
     {
-        MessageTextField.text = this.message.Text;
-        MessageDateField.text = this.message.DeliveredAt.ToString();
+        MessageTextField.text = "";
+        MessageDateField.text = "";
+        StatusTMP.text = "";
+
+        gameObject.SetActive(false);
     }
 }

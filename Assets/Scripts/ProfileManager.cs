@@ -20,6 +20,10 @@ using Assets.Scripts.Helpers;
 using System.Threading.Tasks;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Unity.VisualScripting;
+using System;
+using UnityEditor;
+using UnityEngine.Profiling;
 
 public class ProfileManager : MonoBehaviour
 {
@@ -43,9 +47,60 @@ public class ProfileManager : MonoBehaviour
 
     CancellationTokenSource cancellationTokenSource;
 
+    public bool IsInEditMode = false;
+
+    public delegate void EditModeDelegate(bool isEditingAllowed);
+    public static event EditModeDelegate OnEditModeChanged;
+
+    private DateTime? editModeTogglePressedTime;
+    private bool isEditModeTogglePressed;
+
     private void Awake()
     {
         Instance = this;
+
+        ChatScreenManager.OnSave += ChatScreenManager_OnSave;
+    }
+
+    public void OnEditModeToggle_Pressed()
+    {
+        if (!Settings.AllowEditing)
+        {
+            return;
+        }
+
+        editModeTogglePressedTime = DateTime.Now;
+        isEditModeTogglePressed = true;
+    }
+
+    public void OnEditModeToggle_Unpressed()
+    {
+        if (!Settings.AllowEditing)
+        {
+            return;
+        }
+
+        if (isEditModeTogglePressed)
+        {
+            var secondsElapsed = (DateTime.Now - editModeTogglePressedTime.Value).Seconds;
+            if (secondsElapsed >= 3)
+            {
+                SetAllowEditing(!IsInEditMode);
+            }
+        }
+
+        editModeTogglePressedTime = null;
+        isEditModeTogglePressed = false;
+    }
+
+    private void SetAllowEditing(bool isAllowed)
+    {
+        IsInEditMode = isAllowed;
+
+        if (OnEditModeChanged != null)
+        {
+            OnEditModeChanged.Invoke(IsInEditMode);
+        }
     }
 
     // Start is called before the first frame update
@@ -67,22 +122,46 @@ public class ProfileManager : MonoBehaviour
         await InitialiseData();
     }
 
+    private async UniTask ChatScreenManager_OnSave()
+    {
+        if (!Settings.AllowEditing)
+        {
+            return;
+        }
+
+        var allChatMessagesJson = GetAllChatMessagesAsJson();
+
+        await DriveHelper.UploadFileByName("allChatMessages.json", allChatMessagesJson, SetStatusText);
+
+        await DriveHelper.DownloadFileByName("settings.json", GetSettingsFilePath(), SetStatusText);
+        var latestSettings = GetDownloadedSettings();
+
+        Settings.Version++;
+        var settingsJson = JsonConvert.SerializeObject(Settings);
+
+        await DriveHelper.UploadFileByName("settings.json", settingsJson, SetStatusText);
+    }
+
     private async Task InitialiseData()
     {
+        Profiles = new List<Profile>();
+
         Settings = GetDownloadedSettings();
 
         await DriveHelper.DownloadFileByName("settings.json", GetSettingsFilePath(), SetStatusText);
 
         var latestSettings = GetDownloadedSettings();
 
+        var resetProfiles = false;
         if (Settings == null || (latestSettings.Version > Settings.Version && latestSettings.ForceLoadMessage))
         {
+            resetProfiles = true;
             await DriveHelper.DownloadFileByName("allChatMessages.json", GetMessagesFilePath(), SetStatusText);
         }
 
         Settings = latestSettings;
 
-        await ImportChatMessages();
+        await ImportChatMessages(resetProfiles);
 
         DMScreenHeaderManager.Instance.Initialise();
         DMSreenMessagesManager.Instance.Initialise();
@@ -92,7 +171,7 @@ public class ProfileManager : MonoBehaviour
             await MessagePhotoManager.EnsurePhotoExists(feed.FeedUID);
         }
 
-        HomeScreenManager.Instance.InitialiseFeeds();
+        HomeScreenManager.Instance.Initialise();
 
         SplashImageObject.SetActive(false);
 
@@ -134,6 +213,14 @@ public class ProfileManager : MonoBehaviour
     string GetAllChatMessagesAsJson()
     {
         var allChatMessages = new AllChatMessagesRaw();
+        allChatMessages.Profiles = Profiles
+            .Select(x => new ProfileRaw
+            {
+                Name = x.Name,
+                Handle = x.Handle,
+                PictureUID = x.ProfileUID
+            })
+            .ToList();
 
         var allChats = Profiles.SelectMany(x => x.Chats).ToList();
         foreach (var chat in allChats)
@@ -155,6 +242,11 @@ public class ProfileManager : MonoBehaviour
         return Path.Combine(Application.persistentDataPath, "messages.json");
     }
 
+    string GetProfilePicFilePath(string name)
+    {
+        return Path.Combine(Application.persistentDataPath, name);
+    }
+
     string GetSettingsFilePath()
     {
         return Path.Combine(Application.persistentDataPath, "settings.json");
@@ -172,10 +264,23 @@ public class ProfileManager : MonoBehaviour
         return JsonConvert.DeserializeObject<Settings>(json);
     }
 
-    async UniTask ImportChatMessages()
+    async UniTask ImportChatMessages(bool resetProfiles)
     {
         var json = File.ReadAllText(GetMessagesFilePath());
         var allChatMessages = JsonConvert.DeserializeObject<AllChatMessagesRaw>(json);
+
+        if (resetProfiles)
+        {
+            allChatMessages.Profiles.ForEach(x =>
+            {
+                var profilePicPath = GetProfilePicFilePath(x.PictureUID);
+
+                if (File.Exists(profilePicPath))
+                {
+                    File.Delete(profilePicPath);
+                }
+            });
+        }
 
         var initialiseProfilesTasks = allChatMessages.Profiles.Select(async x =>
         {
@@ -186,7 +291,9 @@ public class ProfileManager : MonoBehaviour
                 Name = x.Name,
                 Handle = x.Handle,
 
-                Picture = MessagePhotoManager.LoadSprite(x.PictureUID)
+                Picture = MessagePhotoManager.LoadSprite(x.PictureUID),
+                PictureBorderless = MessagePhotoManager.LoadSprite(x.PictureUID),
+                ProfileUID = x.PictureUID
             };
             profile.PictureBorderless = profile.Picture;
 
@@ -211,5 +318,6 @@ public class ProfileManager : MonoBehaviour
     private void OnDestroy()
     {
         cancellationTokenSource?.Cancel();
+        ChatScreenManager.OnSave -= ChatScreenManager_OnSave;
     }
 }

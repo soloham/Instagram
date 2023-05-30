@@ -86,7 +86,7 @@ public class LoginManager : MonoBehaviour
 
         DMScreenHeaderManager.Instance.Initialise();
         DMSreenMessagesManager.Instance.Initialise();
-        HomeScreenManager.Instance.InitialiseFeeds();
+        HomeScreenManager.Instance.Initialise();
 
         isLoggingIn = false;
 

@@ -15,6 +15,8 @@ public class Profile
 
     public string Handle;
 
+    public string ProfileUID;
+
     [JsonIgnore]
     public Sprite Picture;
     [JsonIgnore]
