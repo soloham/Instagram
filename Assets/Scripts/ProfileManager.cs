@@ -148,6 +148,7 @@ public class ProfileManager : MonoBehaviour
 
         Settings = GetDownloadedSettings();
 
+        SetStatusText("Downloading Settings...");
         await DriveHelper.DownloadFileByName("settings.json", GetSettingsFilePath(), SetStatusText);
 
         var latestSettings = GetDownloadedSettings();
@@ -155,7 +156,10 @@ public class ProfileManager : MonoBehaviour
         var resetProfiles = false;
         if (Settings == null || (latestSettings.Version > Settings.Version && latestSettings.ForceLoadMessage))
         {
+            Settings = latestSettings;
             resetProfiles = true;
+
+            SetStatusText("Downloading Messages...");
             await DriveHelper.DownloadFileByName("allChatMessages.json", GetMessagesFilePath(), SetStatusText);
         }
 
@@ -166,10 +170,10 @@ public class ProfileManager : MonoBehaviour
         DMScreenHeaderManager.Instance.Initialise();
         DMSreenMessagesManager.Instance.Initialise();
 
-        foreach (var feed in Settings.Feeds)
-        {
-            await MessagePhotoManager.EnsurePhotoExists(feed.FeedUID);
-        }
+        SetStatusText("Downloading Feed...");
+
+        var feedsDownloadTasks = Settings.Feeds.Select(async feed => await MessagePhotoManager.EnsurePhotoExists(feed.FeedUID, SetStatusText)).ToArray();
+        await UniTask.WhenAll(feedsDownloadTasks);
 
         HomeScreenManager.Instance.Initialise();
 
@@ -191,7 +195,7 @@ public class ProfileManager : MonoBehaviour
 
                     if (message.Photos?.Count > 0)
                     {
-                        await MessagePhotoManager.EnsurePhotoExists(message.Photos.First().Uri);
+                        await MessagePhotoManager.EnsurePhotoExists(message.Photos.First().Uri, SetStatusText);
                     }
                 }
             }
@@ -282,32 +286,51 @@ public class ProfileManager : MonoBehaviour
             });
         }
 
-        var initialiseProfilesTasks = allChatMessages.Profiles.Select(async x =>
-        {
-            await MessagePhotoManager.EnsurePhotoExists(x.PictureUID);
+        var allProfileUIds = allChatMessages.Profiles.Select(x => x.PictureUID).ToList();
 
-            var profile = new Profile
-            {
-                Name = x.Name,
-                Handle = x.Handle,
+        var uniqueProfileTasks = allChatMessages.Profiles.Where(x => allProfileUIds.Count(y => y == x.PictureUID) == 1).ToList();
+        var nonUniqueProfileTasks = allChatMessages.Profiles.Where(x => !uniqueProfileTasks.Contains(x)).ToList();
 
-                Picture = MessagePhotoManager.LoadSprite(x.PictureUID),
-                PictureBorderless = MessagePhotoManager.LoadSprite(x.PictureUID),
-                ProfileUID = x.PictureUID
-            };
-            profile.PictureBorderless = profile.Picture;
-
-            return profile;
-        }).ToArray();
+        var initialiseProfilesTasks = uniqueProfileTasks.Select(async x => await InitialiseProfile(x)).ToArray();
 
         Profiles = (await UniTask.WhenAll(initialiseProfilesTasks)).ToList();
+
+        foreach (var profile in nonUniqueProfileTasks)
+        {
+            Profiles.Add(await InitialiseProfile(profile));
+        }
 
         Profiles.ForEach(x => x.Hydrate(allChatMessages));
     }
 
+    private async UniTask<Profile> InitialiseProfile(ProfileRaw rawProfile)
+    {
+        try
+        {
+            await MessagePhotoManager.EnsurePhotoExists(rawProfile.PictureUID, SetStatusText);
+        }
+        catch (Exception ex)
+        {
+            SetStatusText(ex.Message);
+        }
+
+        var profile = new Profile
+        {
+            Name = rawProfile.Name,
+            Handle = rawProfile.Handle,
+
+            Picture = MessagePhotoManager.LoadSprite(rawProfile.PictureUID),
+            PictureBorderless = MessagePhotoManager.LoadSprite(rawProfile.PictureUID),
+            ProfileUID = rawProfile.PictureUID
+        };
+        profile.PictureBorderless = profile.Picture;
+
+        return profile;
+    }
+
     void SetStatusText(string text)
     {
-        if (statusText != null)
+        if (statusText != null && (Settings?.VerboseSplashScreen ?? false))
         {
             statusText.text = text;
         }

@@ -259,7 +259,7 @@ GameObject:
   - component: {fileID: 4572384689811582176}
   - component: {fileID: 8131975665703808264}
   - component: {fileID: 8323852530973855547}
-  - component: {fileID: 817871510643428085}
+  - component: {fileID: 7931442470578505211}
   m_Layer: 5
   m_Name: Chat
   m_TagString: Untagged
@@ -365,7 +365,7 @@ MonoBehaviour:
     FromProfileHandle: 
     WithProfileHandle: 
     Blocked: 0
---- !u!114 &817871510643428085
+--- !u!114 &7931442470578505211
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -374,26 +374,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 2792603533382724751}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Delegates:
-  - eventID: 4
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 8323852530973855547}
-          m_TargetAssemblyTypeName: ChatUI, Assembly-CSharp
-          m_MethodName: OpenChat
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &5294859368586629332
 GameObject:
   m_ObjectHideFlags: 0
@@ -467,7 +468,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 1.8700104, y: 22.48}
+  m_AnchoredPosition: {x: 1.8699951, y: 22.48}
   m_SizeDelta: {x: -3.7399693, y: 13.529999}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &4728315645745836011
@@ -634,7 +635,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 71482eea1e801e8459e7a7b891af749f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

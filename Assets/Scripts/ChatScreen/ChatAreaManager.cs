@@ -228,6 +228,11 @@ public class ChatAreaManager : MonoBehaviour
         }
 
         FindObjectOfType<VirtualScrollRect>().UpdateVisibleMessages(false);
+
+        if (initialising)
+        {
+            FindObjectOfType<VirtualScrollRect>().verticalNormalizedPosition = 0;
+        }
     }
 
     void ToggleLayoutComponents(GameObject obj, bool enable = false)
@@ -272,7 +277,7 @@ public class ChatAreaManager : MonoBehaviour
         ChatMessage nextMessage = null;
 
         var prevMessageIndex = allMessages.IndexOf(chatMessage) - 1;
-        if (prevMessageIndex < allMessages.Count && prevMessageIndex > 0)
+        if (prevMessageIndex < allMessages.Count && prevMessageIndex >= 0)
         {
             previousMessage = allMessages[prevMessageIndex];
         }
@@ -301,7 +306,7 @@ public class ChatAreaManager : MonoBehaviour
         var currentIndex = allMessages.IndexOf(chatMessage);
         var isLast = currentIndex == allMessages.Count - 1;
         var nextMessageAddsBreak = AddsBreak(nextMessage, true);
-        var isLocalLast = isLast || (previousMessage != null && previousMessage.From == chatMessage.From && (nextMessageAddsBreak || nextMessage.From != chatMessage.From));
+        var isLocalLast = isLast || ((previousMessage == null || previousMessage.From == chatMessage.From) && (nextMessageAddsBreak || nextMessage.From != chatMessage.From));
 
         if (previousMessage != null)
         {
@@ -309,11 +314,6 @@ public class ChatAreaManager : MonoBehaviour
 
             if (delaySpan.TotalMinutes >= 10)
             {
-                var sameWeek = DateTime.Today.Subtract(chatMessage.Message.DeliveredAt.dateTime).Days <= 7;
-                var sameYear = DateTime.Today.Year == chatMessage.Message.DeliveredAt.dateTime.Year;
-                var today = sameWeek && chatMessage.Message.DeliveredAt.dateTime.DayOfWeek == DateTime.Today.DayOfWeek;
-                var yesterday = sameWeek && chatMessage.Message.DeliveredAt.dateTime.DayOfWeek == DateTime.Today.DayOfWeek - 1;
-
                 var timeBreakUIText = Instantiate(TimeBreakPrefab, MessagesHolder).GetComponent<TextMeshProUGUI>();
 
                 timeBreakUIText.text = GetMessageTimestamp(chatMessage);
@@ -322,6 +322,12 @@ public class ChatAreaManager : MonoBehaviour
             {
                 var delayObj = Instantiate(DelayFillerPrefab, MessagesHolder);
             }
+        }
+        else
+        {
+            var timeBreakUIText = Instantiate(TimeBreakPrefab, MessagesHolder).GetComponent<TextMeshProUGUI>();
+
+            timeBreakUIText.text = GetMessageTimestamp(chatMessage);
         }
 
         var addsBreak = AddsBreak(chatMessage);
@@ -377,7 +383,7 @@ public class ChatAreaManager : MonoBehaviour
     {
         ChatMessage prevMessage;
         var prevMessageIndex = allMessages.IndexOf(chatMessage) - 1;
-        if (prevMessageIndex < allMessages.Count && prevMessageIndex > 0)
+        if (prevMessageIndex < allMessages.Count && prevMessageIndex >= 0)
         {
             prevMessage = allMessages[prevMessageIndex];
         }

@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using TMPro;
 
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ChatUI : MonoBehaviour
+public class ChatUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
 {
     public Image Picture;
     public TextMeshProUGUI Username;
@@ -31,18 +32,15 @@ public class ChatUI : MonoBehaviour
         Status.text = Chat.GetStatus();
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
+    public void OnPointerDown(PointerEventData eventData)
     {
     }
 
-    public void OpenChat()
+    public void OnPointerUp(PointerEventData eventData)
+    {
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
     {
         NavigationManager.Instance.NavigateToChatbox(Chat);
     }

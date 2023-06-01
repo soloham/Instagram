@@ -337,16 +337,20 @@ namespace UnityEngine.UI
         public float GetYFactor()
         {
             if (YFactorInput == null)
-                return 20f;
+                return ProfileManager.Instance.Settings.HomeScreenScrollYFactor;
 
             var isValid = float.TryParse(YFactorInput.text, out float yFactor);
-            return isValid ? yFactor : 20;
+            return isValid ? yFactor : ProfileManager.Instance.Settings.HomeScreenScrollYFactor;
         }
 
+        private bool startedAsValidDrag = false;
         public virtual void OnBeginDrag(PointerEventData eventData)
         {
             if ((!isLeftCounterpart && Math.Round(m_Content.anchoredPosition.x) == -(m_Content.sizeDelta.x / 2) && eventData.delta.x < 0) || eventData.delta.y > GetYFactor() || eventData.delta.y < -GetYFactor())
+            {
+                startedAsValidDrag = false;
                 return;
+            }
 
             if (eventData.button != PointerEventData.InputButton.Left)
                 return;
@@ -360,6 +364,8 @@ namespace UnityEngine.UI
             RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, eventData.position, eventData.pressEventCamera, out m_PointerStartLocalCursor);
             m_ContentStartPosition = m_Content.anchoredPosition;
             m_Dragging = true;
+
+            startedAsValidDrag = true;
         }
 
         public virtual void OnEndDrag(PointerEventData eventData)
@@ -372,6 +378,11 @@ namespace UnityEngine.UI
 
         public virtual void OnDrag(PointerEventData eventData)
         {
+            if (!startedAsValidDrag)
+            {
+                return;
+            }
+
             if ((!isLeftCounterpart && Math.Round(m_Content.anchoredPosition.x) == -(m_Content.sizeDelta.x / 2) && eventData.delta.x < 0) || eventData.delta.y > GetYFactor() || eventData.delta.y < -GetYFactor())
                 return;
 

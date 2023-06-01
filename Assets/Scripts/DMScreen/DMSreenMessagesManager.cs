@@ -1,6 +1,9 @@
+using Cysharp.Threading.Tasks;
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class DMSreenMessagesManager : MonoBehaviour
 {
@@ -8,6 +11,8 @@ public class DMSreenMessagesManager : MonoBehaviour
 
     public GameObject ChatPrefab;
     public Transform ChatsHolder;
+
+    public RectTransform DMScreenScrollContainer;
 
     public List<Chat> Chats;
 
@@ -25,7 +30,7 @@ public class DMSreenMessagesManager : MonoBehaviour
 
     }
 
-    public void Initialise()
+    public async UniTask Initialise()
     {
         DMScreenNotesManager.Instance.Initialise();
 
@@ -43,6 +48,13 @@ public class DMSreenMessagesManager : MonoBehaviour
             var chatUI = chatUIObject.GetComponent<ChatUI>();
             chatUI.Initialise(chat);
         }
+
+        var vlg = DMScreenScrollContainer.GetComponent<VerticalLayoutGroup>();
+        vlg.enabled = false;
+
+        await UniTask.WaitForEndOfFrame();
+
+        vlg.enabled = true;
     }
 
     // Update is called once per frame

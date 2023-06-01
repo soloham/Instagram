@@ -12,6 +12,16 @@
 
         public bool RandomiseFeed;
 
+        public bool VerboseSplashScreen;
+
+        public float HomeScreenScrollYFactor;
+
+        public float MinimumMessagePhotoScallingRatio;
+
+        public float MessagePhotoWidthScallingRatioFactor;
+
+        public float MessagePhotoHeightScallingRatioFactor;
+
         public List<HomeFeed> Feeds;
     }
 

@@ -83,16 +83,27 @@
                     return;
                 }
 
-                // Save the file content to the destination path
-                using (var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write))
+                try
                 {
-                    stream.Position = 0;
-                    await stream.CopyToAsync(fileStream);
+                    // Save the file content to the destination path
+                    using (var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write))
+                    {
+                        stream.Position = 0;
+                        await stream.CopyToAsync(fileStream);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    if (SetStatusText != null)
+                    {
+                        SetStatusText($"File '{fileName}' downloaded failed!");
+                        SetStatusText(ex.Message);
+                    }
                 }
             }
 
             if (SetStatusText != null)
-                SetStatusText($"File '{file.Name}' downloaded successfully!");
+                SetStatusText($"File '{fileName}' downloaded successfully!");
         }
 
         public static async Task UploadFileByName(string fileName, string fileContent, Action<string> SetStatusText = null)
@@ -132,12 +143,16 @@
 
                 if (uploadStatus.Status == Google.Apis.Upload.UploadStatus.Completed)
                 {
-                    SetStatusText("File updated successfully");
+                    if (SetStatusText != null)
+                        SetStatusText("File updated successfully");
                 }
                 else
                 {
-                    SetStatusText("File updated failed");
-                    SetStatusText(uploadStatus.Exception.Message);
+                    if (SetStatusText != null)
+                    {
+                        SetStatusText("File updated failed");
+                        SetStatusText(uploadStatus.Exception.Message);
+                    }
                 }
             }
             else
@@ -149,12 +164,16 @@
 
                 if (uploadStatus.Status == Google.Apis.Upload.UploadStatus.Completed)
                 {
-                    SetStatusText("File updated successfully");
+                    if (SetStatusText != null)
+                        SetStatusText("File updated successfully");
                 }
                 else
                 {
-                    SetStatusText("File updated failed");
-                    SetStatusText(uploadStatus.Exception.Message);
+                    if (SetStatusText != null)
+                    {
+                        SetStatusText("File updated failed");
+                        SetStatusText(uploadStatus.Exception.Message);
+                    }
                 }
 
                 existingFile = newFile;

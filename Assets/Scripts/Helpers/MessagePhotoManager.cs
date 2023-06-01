@@ -10,13 +10,13 @@
 
     public static class MessagePhotoManager
     {
-        public static async Task EnsurePhotoExists(string imageName)
+        public static async Task EnsurePhotoExists(string imageName, Action<string> SetStatusText = null)
         {
             var storagePath = $"{Application.persistentDataPath}/{imageName}";
 
             if (!File.Exists(storagePath))
             {
-                await DriveHelper.DownloadFileByName(imageName, storagePath);
+                await DriveHelper.DownloadFileByName(imageName, storagePath, SetStatusText);
             }
         }
 

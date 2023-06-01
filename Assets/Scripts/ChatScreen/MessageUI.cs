@@ -168,10 +168,10 @@ public class MessageUI : MonoBehaviour
 
         var ratio = w / h;
 
-        if (ratio < 1)
+        if (ratio < ProfileManager.Instance.Settings.MinimumMessagePhotoScallingRatio)
         {
-            w *= ratio;
-            h *= ratio;
+            w *= (ratio / ProfileManager.Instance.Settings.MessagePhotoWidthScallingRatioFactor);
+            h *= (ratio / ProfileManager.Instance.Settings.MessagePhotoHeightScallingRatioFactor);
         }
 
         MessagePhoto.rectTransform.anchorMax = MessagePhoto.rectTransform.anchorMin;

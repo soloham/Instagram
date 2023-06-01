@@ -83,10 +83,10 @@ public class VirtualScrollRect : ScrollRectFaster
 
         for (var i = content.childCount - 1; i >= 0; i--)
         {
-            if (i >= Inspector.ChatAreaManager.TotalMessages || i < 0)
-            {
-                continue;
-            }
+            //if (i >= Inspector.ChatAreaManager.TotalMessages || i < 0)
+            //{
+            //    continue;
+            //}
 
             var isBeforeAllowed = i > firstVisibleIndex + Inspector.elementsBeforeVisible;
             var isAfterAllowed = i < lastVisibleIndex - Inspector.elementsAfterVisible;
