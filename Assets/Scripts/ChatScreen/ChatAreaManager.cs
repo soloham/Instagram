@@ -1,6 +1,4 @@
 using Assets.Scripts;
-using Assets.Scripts.ChatScreen;
-
 using Cysharp.Threading.Tasks;
 
 using System;
@@ -95,6 +93,10 @@ public class ChatAreaManager : MonoBehaviour
 
     private List<ChatMessage> allMessages;
     public int TotalMessages;
+    public int MessagesAddedInPage;
+
+    public delegate void MessageAdded(Chat toChat);
+    public static event MessageAdded OnMessageAdded;
 
     public void DeInitialise()
     {
@@ -104,11 +106,13 @@ public class ChatAreaManager : MonoBehaviour
         }
 
         VirtualScrollRect.OnReachedEnd -= VirtualScrollRect_OnReachedEnd;
+        MessageField.OnMessageSent -= MessageField_OnMessageSent;
     }
 
     private void OnDestroy()
     {
         VirtualScrollRect.OnReachedEnd -= VirtualScrollRect_OnReachedEnd;
+        MessageField.OnMessageSent -= MessageField_OnMessageSent;
     }
 
     public void Initialise()
@@ -122,10 +126,80 @@ public class ChatAreaManager : MonoBehaviour
 
         allMessages = CurrentChat.ToChatMessages().Messages;
         TotalMessages = allMessages.Count;
+        MessagesAddedInPage = 0;
 
         StartCoroutine(InstantiatePagedMessages(true));
 
         VirtualScrollRect.OnReachedEnd += VirtualScrollRect_OnReachedEnd;
+        MessageField.OnMessageSent += MessageField_OnMessageSent;
+    }
+
+    private async UniTask MessageField_OnMessageSent(string message)
+    {
+        GameObject statusObj = null;
+        if (MessagesHolder.GetChild(0).name == "MessageStatus(Clone)")
+        {
+            statusObj = MessagesHolder.GetChild(0).gameObject;
+        }
+
+        var chatMessage = new ChatMessage
+        {
+            From = ProfileManager.Instance.LoggedInProfile,
+            Message = new Message
+            {
+                SentAt = DateTime.Now,
+                Text = message
+            }
+        };
+
+        var lastMessageUI = MessagesHolder.childCount > 0 ? MessagesHolder.GetChild(statusObj != null ? 1 : 0).GetComponent<MessageUI>() : null;
+        var secondToLastIsMessage = lastMessageUI != null ? MessagesHolder.GetChild(statusObj != null ? 2 : 1).GetComponent<MessageUI>() != null : false;
+
+        allMessages.Add(chatMessage);
+        CurrentChat.Messages.Add(chatMessage.Message);
+        InstantiateMessage(chatMessage, true, statusObj != null);
+
+        if (statusObj != null)
+        {
+            statusObj.transform.SetAsFirstSibling();
+        }
+
+        TotalMessages++;
+        MessagesAddedInPage++;
+
+        if (lastMessageUI.ChatMessage.From != chatMessage.From)
+        {
+            return;
+        }
+
+        lastMessageUI.RoundnessComponent.enabled = false;
+        lastMessageUI.IndependentRoundnessComponent.enabled = true;
+
+        float topLeft;
+        float topRight;
+        float bottomLeft;
+        float bottomRight;
+
+        var height = lastMessageUI.MessageBackground.GetComponent<RectTransform>().sizeDelta.y;
+
+        topLeft = bottomLeft = height / 2;
+        topRight = !secondToLastIsMessage ? height / 2 : 4;
+        bottomRight = 4;
+
+        lastMessageUI.IndependentRoundnessComponent.r.Set(topLeft, topRight, bottomRight, bottomLeft);
+
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            Handheld.Vibrate();
+        }
+
+        await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
+        lastMessageUI.IndependentRoundnessComponent.Refresh();
+
+        if (OnMessageAdded != null)
+        {
+            OnMessageAdded.Invoke(CurrentChat);
+        }
     }
 
     public bool isLoadingPage = false;
@@ -172,7 +246,7 @@ public class ChatAreaManager : MonoBehaviour
     public IEnumerator InstantiatePagedMessages(bool initialising = false)
     {
         pagedMessages = allMessages
-            .Skip(TotalMessages - (CurrentPage * PageSize))
+            .Skip(TotalMessages - ((CurrentPage * PageSize) + MessagesAddedInPage))
             .Take(PageSize)
             .ToList();
 
@@ -271,7 +345,7 @@ public class ChatAreaManager : MonoBehaviour
         InstantiateMessage(chatMessage);
     }
 
-    public void InstantiateMessage(ChatMessage chatMessage)
+    public void InstantiateMessage(ChatMessage chatMessage, bool setAsFirstChild = false, bool ignoreStatus = false)
     {
         ChatMessage previousMessage = null;
         ChatMessage nextMessage = null;
@@ -297,6 +371,7 @@ public class ChatAreaManager : MonoBehaviour
         }
 
         var messageObject = Instantiate(MessagePrefab, MessagesHolder);
+        GameObject timeBreakObj = null, delayObj = null;
 
         var messageUI = messageObject.GetComponent<MessageUI>();
         messageUI.Initialise(chatMessage);
@@ -314,18 +389,20 @@ public class ChatAreaManager : MonoBehaviour
 
             if (delaySpan.TotalMinutes >= 10)
             {
-                var timeBreakUIText = Instantiate(TimeBreakPrefab, MessagesHolder).GetComponent<TextMeshProUGUI>();
+                timeBreakObj = Instantiate(TimeBreakPrefab, MessagesHolder);
+                var timeBreakUIText = timeBreakObj.GetComponent<TextMeshProUGUI>();
 
                 timeBreakUIText.text = GetMessageTimestamp(chatMessage);
             }
             else if (delaySpan.TotalMinutes >= 1 || previousMessage.From != chatMessage.From)
             {
-                var delayObj = Instantiate(DelayFillerPrefab, MessagesHolder);
+                delayObj = Instantiate(DelayFillerPrefab, MessagesHolder);
             }
         }
         else
         {
-            var timeBreakUIText = Instantiate(TimeBreakPrefab, MessagesHolder).GetComponent<TextMeshProUGUI>();
+            timeBreakObj = Instantiate(TimeBreakPrefab, MessagesHolder);
+            var timeBreakUIText = timeBreakObj.GetComponent<TextMeshProUGUI>();
 
             timeBreakUIText.text = GetMessageTimestamp(chatMessage);
         }
@@ -372,7 +449,16 @@ public class ChatAreaManager : MonoBehaviour
             messageUI.IndependentRoundnessComponent.r.Set(topLeft, topRight, bottomRight, bottomLeft);
         }
 
-        if (isLast && IsOurs)
+        if (setAsFirstChild)
+        {
+            if (timeBreakObj != null)
+                timeBreakObj.transform.SetAsFirstSibling();
+            if (delayObj != null)
+                delayObj.transform.SetAsFirstSibling();
+            messageObject.transform.SetAsFirstSibling();
+        }
+
+        if (isLast && IsOurs && !ignoreStatus)
         {
             var messageStatusObj = Instantiate(MessageStatusPrefab, MessagesHolder);
             messageStatusObj.transform.SetAsFirstSibling();

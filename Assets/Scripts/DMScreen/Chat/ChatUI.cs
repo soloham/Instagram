@@ -30,6 +30,18 @@ public class ChatUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPo
         Picture.sprite = Chat.WithProfile.PictureBorderless;
         Username.text = Chat.WithProfile.Name;
         Status.text = Chat.GetStatus();
+
+        ChatAreaManager.OnMessageAdded += ChatAreaManager_OnMessageAdded;
+    }
+
+    private void ChatAreaManager_OnMessageAdded(Chat toChat)
+    {
+        if (toChat != Chat)
+        {
+            return;
+        }
+
+        Status.text = Chat.GetStatus();
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -43,5 +55,10 @@ public class ChatUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPo
     public void OnPointerClick(PointerEventData eventData)
     {
         NavigationManager.Instance.NavigateToChatbox(Chat);
+    }
+
+    private void OnDestroy()
+    {
+        ChatAreaManager.OnMessageAdded -= ChatAreaManager_OnMessageAdded;
     }
 }

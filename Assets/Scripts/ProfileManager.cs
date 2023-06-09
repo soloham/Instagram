@@ -3,7 +3,6 @@ using Assets.Scripts.ChatScreen;
 
 using Newtonsoft.Json;
 
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,19 +10,13 @@ using System.Linq;
 using TMPro;
 
 using UnityEngine;
-using UnityEngine.Networking;
 
-using Google.Apis.Drive.v3;
-using Google.Apis.Services;
-using Google.Apis.Auth.OAuth2;
 using Assets.Scripts.Helpers;
 using System.Threading.Tasks;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Unity.VisualScripting;
 using System;
 using UnityEditor;
-using UnityEngine.Profiling;
 
 public class ProfileManager : MonoBehaviour
 {
@@ -86,6 +79,11 @@ public class ProfileManager : MonoBehaviour
             if (secondsElapsed >= 3)
             {
                 SetAllowEditing(!IsInEditMode);
+
+                if (Application.platform == RuntimePlatform.Android)
+                {
+                    Handheld.Vibrate();
+                }
             }
         }
 

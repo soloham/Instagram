@@ -69,6 +69,7 @@ public class NavigationManager : MonoBehaviour
         }
 
         ChatScreen.SetActive(false);
+        //TouchScreenKeyboard.Android.consumesOutsideTouches = false;
     }
 
     public void NavigateToChatbox(Chat chat)
@@ -76,10 +77,12 @@ public class NavigationManager : MonoBehaviour
         ChatScreen.SetActive(true);
 
         ChatScreenManager.Initialise(chat);
+        //TouchScreenKeyboard.Android.consumesOutsideTouches = false;
     }
 
     public void NavigateToHomeScreen()
     {
         ChatScreen.SetActive(false);
+        //TouchScreenKeyboard.Android.consumesOutsideTouches = false;
     }
 }
