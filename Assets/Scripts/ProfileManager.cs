@@ -179,23 +179,29 @@ public class ProfileManager : MonoBehaviour
 
         foreach (var profile in Profiles)
         {
-            foreach (var chat in profile.Chats)
+            try
             {
-                var chatMessages = chat.ToChatMessages();
-                for (int i = chatMessages.Messages.Count - 1; i >= 0; i--)
+                foreach (var chat in profile.Chats)
                 {
-                    if (!Application.isPlaying)
+                    var chatMessages = chat.ToChatMessages();
+                    for (int i = chatMessages.Messages.Count - 1; i >= 0; i--)
                     {
-                        return;
-                    }
+                        if (!Application.isPlaying)
+                        {
+                            return;
+                        }
 
-                    var message = chatMessages.Messages[i].Message;
+                        var message = chatMessages.Messages[i].Message;
 
-                    if (message.Photos?.Count > 0)
-                    {
-                        await MessagePhotoManager.EnsurePhotoExists(message.Photos.First().Uri, SetStatusText);
+                        if (message.Photos?.Count > 0)
+                        {
+                            await MessagePhotoManager.EnsurePhotoExists(message.Photos.First().Uri, SetStatusText);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
             }
         }
     }

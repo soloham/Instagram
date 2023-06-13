@@ -1,3 +1,5 @@
+using AdvancedInputFieldPlugin;
+
 using Cysharp.Threading.Tasks;
 
 using System.Collections;
@@ -17,7 +19,7 @@ public class MessageField : MonoBehaviour
     public RectTransform ActionsTransform;
     public GameObject SendObj;
 
-    private TMP_InputField MessageInput;
+    private AdvancedInputField MessageInput;
 
     public delegate UniTask MessageSent(string message);
     public static event MessageSent OnMessageSent;
@@ -25,8 +27,8 @@ public class MessageField : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        MessageInput = GetComponent<TMP_InputField>();
-        MessageInput.onValueChanged.AddListener((value) =>
+        MessageInput = GetComponent<AdvancedInputField>();
+        MessageInput.OnValueChanged.AddListener((value) =>
         {
             var hasValue = !string.IsNullOrWhiteSpace(value);
 
@@ -42,9 +44,7 @@ public class MessageField : MonoBehaviour
 
     public void SendMessage()
     {
-        MessageInput.ActivateInputField();
-
-        var message = MessageInput.text;
+        var message = MessageInput.Text;
         if (string.IsNullOrWhiteSpace(message))
         {
             return;
@@ -55,6 +55,6 @@ public class MessageField : MonoBehaviour
             OnMessageSent.Invoke(message);
         }
 
-        MessageInput.text = "";
+        MessageInput.SetText(string.Empty);
     }
 }

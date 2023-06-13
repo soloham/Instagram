@@ -2,6 +2,8 @@ using Cysharp.Threading.Tasks;
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,7 +42,7 @@ public class DMSreenMessagesManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        Chats = ProfileManager.Instance.LoggedInProfile.Chats;
+        Chats = ProfileManager.Instance.LoggedInProfile.Chats.OrderByDescending(x => x.LastMessage.Value.Message.DeliveredAt.dateTime).ToList();
 
         foreach (var chat in Chats)
         {
@@ -55,6 +57,13 @@ public class DMSreenMessagesManager : MonoBehaviour
         await UniTask.WaitForEndOfFrame();
 
         vlg.enabled = true;
+
+        ChatAreaManager.OnMessageAdded += ChatAreaManager_OnMessageAdded; ;
+    }
+
+    private void ChatAreaManager_OnMessageAdded(Chat toChat)
+    {
+        Initialise();
     }
 
     // Update is called once per frame

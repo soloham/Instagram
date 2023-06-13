@@ -22,17 +22,22 @@ public class Chat
 
     public bool Blocked;
 
+    public Lazy<ChatMessage> LastMessage => new Lazy<ChatMessage>(() => ToChatMessages().Messages.LastOrDefault());
+
     public string GetStatus()
     {
-        var sortedMessages = ToChatMessages();
-
-        var lastMessage = sortedMessages.Messages.LastOrDefault();
+        var lastMessage = LastMessage.Value;
         if (lastMessage.From.Handle == WithProfileHandle)
         {
             var timeGoneSpan = DateTime.Now.Subtract(lastMessage.Message.ReceivedAt.dateTime);
 
             var messageText = lastMessage.Message.Text;
-            return $"{messageText} · {timeGoneSpan.Days}d";
+
+            var suffix = timeGoneSpan.Days >= 7
+                ? $"{Math.Round(timeGoneSpan.TotalDays / 7f)} w"
+                : $"{timeGoneSpan.Days} d";
+
+            return $"{messageText} · {suffix}";
         }
 
         return "Sent";

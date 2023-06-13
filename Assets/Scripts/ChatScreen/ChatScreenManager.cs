@@ -1,3 +1,5 @@
+using AdvancedInputFieldPlugin;
+
 using Cysharp.Threading.Tasks;
 
 using System;
@@ -9,7 +11,7 @@ using UnityEngine.UI;
 
 public class ChatScreenManager : MonoBehaviour
 {
-    public TMP_InputField SearchField;
+    public AdvancedInputField SearchField;
 
     public Image ProfilePicture;
     public TextMeshProUGUI Name;
@@ -79,7 +81,7 @@ public class ChatScreenManager : MonoBehaviour
         }
 
 #if UNITY_ANDROID
-        if (SearchField.isFocused)
+        if (SearchField.Selected)
         {
             InputFieldActive = true;
             childRectTransform = SearchField.GetComponent<RectTransform>();
