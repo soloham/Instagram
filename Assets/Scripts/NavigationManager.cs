@@ -83,6 +83,7 @@ public class NavigationManager : MonoBehaviour
     public void NavigateToHomeScreen()
     {
         ChatScreen.SetActive(false);
+        RightScroller.NavigateBackFromDMs();
         //TouchScreenKeyboard.Android.consumesOutsideTouches = false;
     }
 }

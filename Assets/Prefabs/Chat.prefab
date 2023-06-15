@@ -365,6 +365,7 @@ MonoBehaviour:
     FromProfileHandle: 
     WithProfileHandle: 
     Blocked: 0
+  PointerDownColor: {r: 0.2735849, g: 0.2735849, b: 0.2735849, a: 0.5372549}
 --- !u!114 &7931442470578505211
 MonoBehaviour:
   m_ObjectHideFlags: 0
