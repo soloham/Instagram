@@ -301,11 +301,14 @@ public class ChatAreaManager : MonoBehaviour
             child.gameObject.SetActive(!initialising || i < 30);
         }
 
-        FindObjectOfType<VirtualScrollRect>().UpdateVisibleMessages(false);
+        var vsr = FindObjectOfType<VirtualScrollRect>();
+        vsr.UpdateVisibleMessages(false);
 
         if (initialising)
         {
-            FindObjectOfType<VirtualScrollRect>().verticalNormalizedPosition = 0;
+            vsr.verticalNormalizedPosition = 0;
+            vsr.StopMovement();
+            FindObjectOfType<ScrollRectFaster>().StopMovement();
         }
     }
 

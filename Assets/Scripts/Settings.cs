@@ -22,6 +22,9 @@
 
         public float MessagePhotoHeightScallingRatioFactor;
 
+        public int AntistallPositionUpdateCountThreshold;
+        public int AntistallPositionYThreshold;
+
         public List<HomeFeed> Feeds;
     }
 

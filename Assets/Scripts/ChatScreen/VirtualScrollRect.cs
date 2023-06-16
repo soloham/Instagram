@@ -21,6 +21,7 @@ public class VirtualScrollRect : ScrollRectFaster
     protected override void Start()
     {
         Inspector = GetComponent<VirtualScrollRectInspector>();
+        AllowAntistalling = Inspector.AllowAntistalling;
     }
 
     public void InitialiseChatVisibility()
@@ -59,6 +60,16 @@ public class VirtualScrollRect : ScrollRectFaster
         if (Inspector.VelocityTMP != null)
         {
             Inspector.VelocityTMP.text = $"Velocity: {velocity.y}";
+        }
+
+        if (Inspector.UpdateCountTMP != null)
+        {
+            Inspector.UpdateCountTMP.text = $"Updates: {PositionUpdateCount}";
+        }
+
+        if (Inspector.StutteringTMP != null)
+        {
+            Inspector.StutteringTMP.text = Stuttering ? "STUTTERING!" : "";
         }
     }
 

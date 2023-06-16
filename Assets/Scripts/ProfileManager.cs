@@ -146,8 +146,15 @@ public class ProfileManager : MonoBehaviour
 
         Settings = GetDownloadedSettings();
 
-        SetStatusText("Downloading Settings...");
-        await DriveHelper.DownloadFileByName("settings.json", GetSettingsFilePath(), SetStatusText);
+        try
+        {
+            SetStatusText("Downloading Settings...");
+            await DriveHelper.DownloadFileByName("settings.json", GetSettingsFilePath(), SetStatusText);
+        }
+        catch
+        {
+            SetStatusText($"Failed to downloading Settings, {(Settings == null ? "connect to internet" : "using local version")}");
+        }
 
         var latestSettings = GetDownloadedSettings();
 

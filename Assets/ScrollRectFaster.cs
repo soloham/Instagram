@@ -74,6 +74,14 @@ namespace UnityEngine.UI
         private float m_InertiaVelocityMultuplier = 40;
         public float InertiaVelocityMultuplier { get { return m_InertiaVelocityMultuplier; } set { m_InertiaVelocityMultuplier = value; } }
 
+        public bool avoidScrolling = false;
+        public bool AllowAntistalling = false;
+
+        public void ToggleAvoidScrolling()
+        {
+            avoidScrolling = !avoidScrolling;
+        }
+
         [SerializeField]
         private Scrollbar m_HorizontalScrollbar;
         public Scrollbar horizontalScrollbar
@@ -390,10 +398,23 @@ namespace UnityEngine.UI
 
         }
 
+        public int PositionUpdateCount;
+        public bool Stuttering;
+
         protected virtual void LateUpdate()
         {
-            if (!m_Content)
+            if (!m_Content || avoidScrolling || Stuttering)
+            {
+                if (Stuttering && m_Content && velocity == Vector2.zero && m_Content.anchoredPosition.y == 0)
+                {
+                    Stuttering = false;
+                }
+                else if (m_Content)
+                {
+                    SetContentAnchoredPosition(Vector2.zero);
+                }
                 return;
+            }
 
             EnsureLayoutHasRebuilt();
             UpdateScrollbarVisibility();
@@ -401,7 +422,7 @@ namespace UnityEngine.UI
             float deltaTime = Time.unscaledDeltaTime;
             Vector2 offset = CalculateOffset(Vector2.zero);
 
-            if (!m_Dragging && (offset != Vector2.zero || m_Velocity != Vector2.zero))
+            if (!m_Dragging && (offset != Vector2.zero || m_Velocity != Vector2.zero) && !Stuttering)
             {
                 Decelerating();
                 Vector2 position = m_Content.anchoredPosition;
@@ -441,6 +462,19 @@ namespace UnityEngine.UI
                     }
 
                     SetContentAnchoredPosition(position);
+                    PositionUpdateCount++;
+
+                    if (AllowAntistalling && (position.y > ProfileManager.Instance.Settings.AntistallPositionYThreshold || PositionUpdateCount > ProfileManager.Instance.Settings.AntistallPositionUpdateCountThreshold))
+                    {
+                        Stuttering = true;
+                        SetContentAnchoredPosition(Vector2.zero);
+                        StopMovement();
+                        PositionUpdateCount = 0;
+                    }
+                }
+                else
+                {
+                    PositionUpdateCount = 0;
                 }
             }
 

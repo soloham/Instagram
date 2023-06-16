@@ -15,10 +15,14 @@ public class VirtualScrollRectInspector : MonoBehaviour
     private int m_elementsAfterVisible = 30;
     public int elementsAfterVisible { get { return m_elementsAfterVisible; } set { m_elementsAfterVisible = value; } }
 
+    public bool AllowAntistalling = false;
+
     public TextMeshProUGUI ActiveTMP;
     public TextMeshProUGUI LastIterationsTMP;
     public TextMeshProUGUI FirstIterationsTMP;
     public TextMeshProUGUI VelocityTMP;
+    public TextMeshProUGUI StutteringTMP;
+    public TextMeshProUGUI UpdateCountTMP;
     public TextMeshProUGUI FirstItemIndexTMP;
 
     public float ScrollIncrementDivisor = 1;
