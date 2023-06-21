@@ -23,6 +23,7 @@ public class VirtualScrollRectInspector : MonoBehaviour
     public TextMeshProUGUI VelocityTMP;
     public TextMeshProUGUI StutteringTMP;
     public TextMeshProUGUI UpdateCountTMP;
+    public TextMeshProUGUI SizeUpdateTMP;
     public TextMeshProUGUI FirstItemIndexTMP;
 
     public float ScrollIncrementDivisor = 1;

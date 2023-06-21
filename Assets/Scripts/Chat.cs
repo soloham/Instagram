@@ -24,9 +24,9 @@ public class Chat
 
     public Lazy<ChatMessage> LastMessage => new Lazy<ChatMessage>(() => ToChatMessages().Messages.LastOrDefault());
 
-    public string GetStatus()
+    public string GetStatus(ChatMessage chatMessage = null)
     {
-        var lastMessage = LastMessage.Value;
+        var lastMessage = chatMessage ?? LastMessage.Value;
         if (lastMessage.From.Handle == WithProfileHandle)
         {
             var timeGoneSpan = DateTime.Now.Subtract(lastMessage.Message.ReceivedAt.dateTime);

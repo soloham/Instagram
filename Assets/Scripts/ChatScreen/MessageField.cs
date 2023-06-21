@@ -21,7 +21,7 @@ public class MessageField : MonoBehaviour
 
     private AdvancedInputField MessageInput;
 
-    public delegate UniTask MessageSent(string message);
+    public delegate void MessageSent(string message);
     public static event MessageSent OnMessageSent;
 
     // Start is called before the first frame update

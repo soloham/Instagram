@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using TMPro;
 
 using UnityEngine;
+using UnityEngine.Android;
 using UnityEngine.UI;
 
 public class MessageUI : MonoBehaviour
@@ -146,9 +147,12 @@ public class MessageUI : MonoBehaviour
 
             await MessagePhotoManager.EnsurePhotoExists(photo.Uri);
 
-            MessagePhoto.sprite = MessagePhotoManager.LoadSprite(photo.Uri);
-            MessagePhoto.preserveAspect = true;
-            MessagePhoto.color = Color.white;
+            if (Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead))
+            {
+                MessagePhoto.sprite = MessagePhotoManager.LoadSprite(photo.Uri);
+                MessagePhoto.preserveAspect = true;
+                MessagePhoto.color = Color.white;
+            }
 
             RoundnessComponent.radius = 25;
 

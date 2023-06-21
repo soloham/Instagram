@@ -25,6 +25,9 @@
         public int AntistallPositionUpdateCountThreshold;
         public int AntistallPositionYThreshold;
 
+        public List<string> MediaDirectories = new List<string>();
+        public List<string> DeviceModelsToIgnore = new List<string>();
+
         public List<HomeFeed> Feeds;
     }
 

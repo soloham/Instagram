@@ -71,6 +71,11 @@ public class VirtualScrollRect : ScrollRectFaster
         {
             Inspector.StutteringTMP.text = Stuttering ? "STUTTERING!" : "";
         }
+
+        if (Inspector.SizeUpdateTMP != null)
+        {
+            Inspector.SizeUpdateTMP.text = $"Size Updates: {SizeUpdateCount}";
+        }
     }
 
     public void UpdateVisibleMessages(bool updatePosition = true)
@@ -78,15 +83,30 @@ public class VirtualScrollRect : ScrollRectFaster
         var firstVisibleIndex = GetFirstVisibleElementIndex();
         var lastVisibleIndex = GetLastVisibleElementIndex();
 
+        if (!firstVisibleIndex.HasValue && !lastVisibleIndex.HasValue)
+        {
+            return;
+        }
+
+        if (firstVisibleIndex == 0 && lastVisibleIndex == 0)
+        {
+            return;
+        }
+
         var isLastMessage = firstVisibleIndex == content.childCount - 1;
         if (isLastMessage)
         {
             if (OnReachedEnd != null)
+            {
+                Debug.Log("Reached End");
+                Debug.Log("FVI: " + firstVisibleIndex + ", LVI: " + lastVisibleIndex);
                 OnReachedEnd();
+            }
         }
 
         if (Inspector.ChatAreaManager.isLoadingPage)
         {
+            Debug.Log("Loading Page");
             return;
         }
 
@@ -110,7 +130,9 @@ public class VirtualScrollRect : ScrollRectFaster
 
             if (updatePosition && (i >= lastVisibleIndex - Inspector.elementsAfterVisible - 10 && i < lastVisibleIndex) && !wasActive && isActive && !Inspector.ChatAreaManager.isLoadingPage)
             {
+                SizeUpdateCount++;
                 content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y - (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
+                Debug.Log("Activated CP.Y: " + content.anchoredPosition.y + ", SizeY: " + obj.GetComponent<RectTransform>().sizeDelta.y + ", SID: " + Inspector.ScrollIncrementDivisor + ", YInc: " + obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor, obj);
             }
 
             if (wasActive && !isActive)
@@ -126,12 +148,14 @@ public class VirtualScrollRect : ScrollRectFaster
 
             if (updatePosition && (goingUp || (i >= lastVisibleIndex - Inspector.elementsAfterVisible - 10 && i < lastVisibleIndex)) && wasActive && !isActive && !Inspector.ChatAreaManager.isLoadingPage)
             {
+                SizeUpdateCount++;
                 content.anchoredPosition = new Vector2(content.anchoredPosition.x, content.anchoredPosition.y + (Inspector.ScrollIncrementDivisor == 0 ? 0 : obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor));
+                Debug.Log("Deactivated CP.Y: " + content.anchoredPosition.y + ", SizeY: " + obj.GetComponent<RectTransform>().sizeDelta.y + ", SID: " + Inspector.ScrollIncrementDivisor + ", YInc: " + obj.GetComponent<RectTransform>().sizeDelta.y / Inspector.ScrollIncrementDivisor, obj);
             }
         }
     }
 
-    public int GetFirstVisibleElementIndex()
+    public int? GetFirstVisibleElementIndex()
     {
         Vector3[] viewportCorners = new Vector3[4];
         viewport.GetWorldCorners(viewportCorners);
@@ -158,10 +182,10 @@ public class VirtualScrollRect : ScrollRectFaster
             }
         }
 
-        return content.childCount - 1;
+        return null;
     }
 
-    public int GetLastVisibleElementIndex()
+    public int? GetLastVisibleElementIndex()
     {
         Vector3[] viewportCorners = new Vector3[4];
         viewport.GetWorldCorners(viewportCorners);
@@ -195,6 +219,6 @@ public class VirtualScrollRect : ScrollRectFaster
             }
         }
 
-        return 0;
+        return null;
     }
 }

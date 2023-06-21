@@ -399,6 +399,8 @@ namespace UnityEngine.UI
         }
 
         public int PositionUpdateCount;
+
+        public int SizeUpdateCount;
         public bool Stuttering;
 
         protected virtual void LateUpdate()
@@ -464,17 +466,18 @@ namespace UnityEngine.UI
                     SetContentAnchoredPosition(position);
                     PositionUpdateCount++;
 
-                    if (AllowAntistalling && (position.y > ProfileManager.Instance.Settings.AntistallPositionYThreshold || PositionUpdateCount > ProfileManager.Instance.Settings.AntistallPositionUpdateCountThreshold))
+                    if (AllowAntistalling && (position.y > ProfileManager.Instance.Settings.AntistallPositionYThreshold && (PositionUpdateCount > ProfileManager.Instance.Settings.AntistallPositionUpdateCountThreshold || m_Velocity[1] < -200)))
                     {
                         Stuttering = true;
-                        SetContentAnchoredPosition(Vector2.zero);
                         StopMovement();
                         PositionUpdateCount = 0;
+                        SizeUpdateCount = 0;
                     }
                 }
                 else
                 {
                     PositionUpdateCount = 0;
+                    SizeUpdateCount = 0;
                 }
             }
 

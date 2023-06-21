@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using TMPro;
 
@@ -105,6 +106,7 @@ public class ChatAreaManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
+        LastSkippedMessageCount = 0;
         VirtualScrollRect.OnReachedEnd -= VirtualScrollRect_OnReachedEnd;
         MessageField.OnMessageSent -= MessageField_OnMessageSent;
     }
@@ -117,6 +119,7 @@ public class ChatAreaManager : MonoBehaviour
 
     public void Initialise()
     {
+        LastSkippedMessageCount = 0;
         foreach (Transform child in MessagesHolder)
         {
             Destroy(child.gameObject);
@@ -128,13 +131,20 @@ public class ChatAreaManager : MonoBehaviour
         TotalMessages = allMessages.Count;
         MessagesAddedInPage = 0;
 
+        var duplicateMessages = allMessages.GroupBy(x => x.Message.Text).Where(x => x.Count() > 1).ToList();
+
         StartCoroutine(InstantiatePagedMessages(true));
 
         VirtualScrollRect.OnReachedEnd += VirtualScrollRect_OnReachedEnd;
         MessageField.OnMessageSent += MessageField_OnMessageSent;
     }
 
-    private async UniTask MessageField_OnMessageSent(string message)
+    private void MessageField_OnMessageSent(string message)
+    {
+        StartCoroutine(MessageField_OnMessageSentAsync(message));
+    }
+
+    private IEnumerator MessageField_OnMessageSentAsync(string message)
     {
         GameObject statusObj = null;
         if (MessagesHolder.GetChild(0).name == "MessageStatus(Clone)")
@@ -169,7 +179,7 @@ public class ChatAreaManager : MonoBehaviour
 
         if (lastMessageUI.ChatMessage.From != chatMessage.From)
         {
-            return;
+            yield break;
         }
 
         lastMessageUI.RoundnessComponent.enabled = false;
@@ -187,19 +197,16 @@ public class ChatAreaManager : MonoBehaviour
         bottomRight = 4;
 
         lastMessageUI.IndependentRoundnessComponent.r.Set(topLeft, topRight, bottomRight, bottomLeft);
-
-        if (Application.platform == RuntimePlatform.Android)
-        {
-            Handheld.Vibrate();
-        }
-
-        await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
         lastMessageUI.IndependentRoundnessComponent.Refresh();
+        var vsr = FindObjectOfType<VirtualScrollRect>();
 
         if (OnMessageAdded != null)
         {
             OnMessageAdded.Invoke(CurrentChat);
         }
+
+        yield return new WaitForSeconds(0.3f);
+        vsr.verticalNormalizedPosition = 0;
     }
 
     public bool isLoadingPage = false;
@@ -243,12 +250,24 @@ public class ChatAreaManager : MonoBehaviour
     }
 
     List<ChatMessage> pagedMessages;
+    public int LastSkippedMessageCount;
     public IEnumerator InstantiatePagedMessages(bool initialising = false)
     {
-        pagedMessages = allMessages
-            .Skip(TotalMessages - ((CurrentPage * PageSize) + MessagesAddedInPage))
-            .Take(PageSize)
-            .ToList();
+        if (TotalMessages - LastSkippedMessageCount < PageSize)
+        {
+            pagedMessages = allMessages
+                .Take(TotalMessages - LastSkippedMessageCount)
+                .ToList();
+        }
+        else
+        {
+            pagedMessages = allMessages
+                .Skip(TotalMessages - ((CurrentPage * PageSize) + MessagesAddedInPage))
+                .Take(PageSize)
+                .ToList();
+        }
+
+        LastSkippedMessageCount = (CurrentPage * PageSize) + MessagesAddedInPage;
 
         isLastPage = pagedMessages.Contains(allMessages.First());
 
@@ -262,9 +281,12 @@ public class ChatAreaManager : MonoBehaviour
         }
 
         yield return new WaitForEndOfFrame();
-        loaderObject = Instantiate(MessageLoaderPrefab, MessagesHolder);
+        if (!isLastPage && pagedMessages.Any())
+        {
+            loaderObject = Instantiate(MessageLoaderPrefab, MessagesHolder);
 
-        loaderObject.GetComponent<MessagesLoader>().Initialise(GetMessageTimestamp(pagedMessages.Last()));
+            loaderObject.GetComponent<MessagesLoader>().Initialise(GetMessageTimestamp(pagedMessages.Last()));
+        }
 
         for (int i = oldChildCount - 1; i < MessagesHolder.childCount; i++)
         {

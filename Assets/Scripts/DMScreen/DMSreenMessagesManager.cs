@@ -58,12 +58,21 @@ public class DMSreenMessagesManager : MonoBehaviour
 
         vlg.enabled = true;
 
-        ChatAreaManager.OnMessageAdded += ChatAreaManager_OnMessageAdded; ;
+        ChatAreaManager.OnMessageAdded += ChatAreaManager_OnMessageAdded;
     }
 
-    private void ChatAreaManager_OnMessageAdded(Chat toChat)
+    private void ChatAreaManager_OnMessageAdded(Chat addedToChat)
     {
-        Initialise();
+        foreach (Transform chatUIObject in ChatsHolder)
+        {
+            var chatUI = chatUIObject.GetComponent<ChatUI>();
+
+            if (addedToChat != null && chatUI.Chat.WithProfile == addedToChat.WithProfile)
+            {
+                chatUI.UpdateStatus();
+                chatUIObject.SetAsFirstSibling();
+            }
+        }
     }
 
     // Update is called once per frame

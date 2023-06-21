@@ -43,6 +43,11 @@ public class ChatUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPo
         ChatAreaManager.OnMessageAdded += ChatAreaManager_OnMessageAdded;
     }
 
+    public void UpdateStatus(ChatMessage lastMessage = null)
+    {
+        Status.text = Chat.GetStatus(lastMessage);
+    }
+
     private void ChatAreaManager_OnMessageAdded(Chat toChat)
     {
         if (toChat != Chat)
@@ -75,18 +80,13 @@ public class ChatUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPo
         {
             if (originalMousePosition == Input.mousePosition)
             {
-                NavigationManager.Instance.NavigateToChatbox(Chat);
+                StartCoroutine(NavigationManager.Instance.NavigateToChatbox(Chat));
             }
             return;
         }
 
         Debug.Log(" Showing Context Menu");
         ChatContextMenuManager.Instance.Show(this);
-
-        if (Application.platform == RuntimePlatform.Android)
-        {
-            Handheld.Vibrate();
-        }
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -100,7 +100,7 @@ public class ChatUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPo
         if (isPrematureClick)
         {
             pressedTime = null;
-            NavigationManager.Instance.NavigateToChatbox(Chat);
+            StartCoroutine(NavigationManager.Instance.NavigateToChatbox(Chat));
         }
 
         isPrematureClick = false;

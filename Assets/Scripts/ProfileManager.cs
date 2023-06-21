@@ -26,7 +26,8 @@ public class ProfileManager : MonoBehaviour
 
     public string LoggedInProfileHandle;
 
-    public Settings Settings { get; set; }
+    public Settings
+        Settings { get; set; }
 
     [HideInInspector]
     public Profile LoggedInProfile => Profiles.SingleOrDefault(x => x.Handle == LoggedInProfileHandle);
@@ -129,7 +130,7 @@ public class ProfileManager : MonoBehaviour
 
         var allChatMessagesJson = GetAllChatMessagesAsJson();
 
-        await DriveHelper.UploadFileByName("allChatMessages.json", allChatMessagesJson, SetStatusText);
+        await DriveHelper.UploadFileByName("allChatMessages.json", allChatMessagesJson, null, SetStatusText);
 
         await DriveHelper.DownloadFileByName("settings.json", GetSettingsFilePath(), SetStatusText);
         var latestSettings = GetDownloadedSettings();
@@ -137,7 +138,7 @@ public class ProfileManager : MonoBehaviour
         Settings.Version++;
         var settingsJson = JsonConvert.SerializeObject(Settings);
 
-        await DriveHelper.UploadFileByName("settings.json", settingsJson, SetStatusText);
+        await DriveHelper.UploadFileByName("settings.json", settingsJson, null, SetStatusText);
     }
 
     private async Task InitialiseData()

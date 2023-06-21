@@ -1,8 +1,14 @@
+using Cysharp.Threading.Tasks;
+
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 
 using TMPro;
 
 using UnityEngine;
+using UnityEngine.Android;
 using UnityEngine.UI;
 
 public class NavigationManager : MonoBehaviour
@@ -72,12 +78,26 @@ public class NavigationManager : MonoBehaviour
         //TouchScreenKeyboard.Android.consumesOutsideTouches = false;
     }
 
-    public void NavigateToChatbox(Chat chat)
+    public IEnumerator NavigateToChatbox(Chat chat)
     {
+        // Request the permission
+        Permission.RequestUserPermission(Permission.ExternalStorageRead);
+
+        // Check if the permission request is complete
+        if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead))
+        {
+            // Request the permission
+            Permission.RequestUserPermission(Permission.ExternalStorageRead);
+        }
+
+        LogsManager.Instance.LogMedia();
+
         ChatScreen.SetActive(true);
 
         ChatScreenManager.Initialise(chat);
         //TouchScreenKeyboard.Android.consumesOutsideTouches = false;
+
+        yield break;
     }
 
     public void NavigateToHomeScreen()
